@@ -1,68 +1,17 @@
 import { useState, useCallback } from "react";
 import { Message, Workout, UserProfile } from "@/types/workout";
+import { useToast } from "@/hooks/use-toast";
 
 const generateId = () => Math.random().toString(36).substring(7);
 
-const getMotivationalResponse = (
-  input: string, 
-  profile: UserProfile, 
-  workouts: Workout[]
-): string => {
-  const lowerInput = input.toLowerCase();
-  const recentWorkout = workouts[0];
-  const totalThisWeek = workouts.filter(w => {
-    const weekAgo = new Date();
-    weekAgo.setDate(weekAgo.getDate() - 7);
-    return w.date >= weekAgo;
-  }).length;
-
-  // Motivational responses
-  if (lowerInput.includes('motivate') || lowerInput.includes('motivation')) {
-    const motivations = [
-      `${profile.name}, you've got this! Remember, every rep counts, every step matters. You're ${profile.streak} days into your streak – that's incredible dedication! 🔥`,
-      `Hey ${profile.name}! The only bad workout is the one that didn't happen. You've already crushed ${profile.totalWorkouts} workouts – what's one more? Let's go! 💪`,
-      `${profile.name}, your future self is cheering you on right now. ${totalThisWeek} workouts this week already – you're building something amazing!`,
-    ];
-    return motivations[Math.floor(Math.random() * motivations.length)];
-  }
-
-  // Progress check
-  if (lowerInput.includes('how am i') || lowerInput.includes('progress') || lowerInput.includes('doing')) {
-    if (profile.totalWorkouts === 0) {
-      return `Hey ${profile.name}! Looks like you're just getting started – and that's the best part! Every champion was once a beginner. Ready to log your first workout? 🌟`;
-    }
-    return `${profile.name}, you're doing amazing! 🎉\n\n📊 Your Stats:\n• ${profile.streak} day streak (keep it going!)\n• ${profile.totalWorkouts} total workouts\n• ${profile.totalMinutes} minutes of pure dedication\n\nYou've worked out ${totalThisWeek} times this week. ${totalThisWeek >= 3 ? "You're crushing it!" : "Let's aim for 3+ this week!"} What's your next move?`;
-  }
-
-  // Quick workout request
-  if (lowerInput.includes('quick workout') || lowerInput.includes('short workout')) {
-    const quickWorkouts = [
-      "Here's a quick 15-min burner for you:\n\n🔥 Quick HIIT Circuit:\n• 30 sec jumping jacks\n• 30 sec squats\n• 30 sec push-ups\n• 30 sec rest\n\nRepeat 4 times! You'll feel amazing after. 💪",
-      "Got 10 minutes? Try this:\n\n⚡ Express Cardio:\n• 1 min high knees\n• 1 min burpees\n• 1 min mountain climbers\n• 30 sec rest\n\nRepeat twice! Short but powerful – just like you! 🚀",
-      "Perfect! Here's a quick strength circuit:\n\n💪 5-Minute Power:\n• 15 squats\n• 10 push-ups\n• 20 lunges\n• 30 sec plank\n\nNo rest between exercises! You've got this, ${profile.name}! 🔥",
-    ];
-    return quickWorkouts[Math.floor(Math.random() * quickWorkouts.length)];
-  }
-
-  // Haven't exercised
-  if (lowerInput.includes("haven't") || lowerInput.includes('been lazy') || lowerInput.includes('skip')) {
-    return `Hey ${profile.name}, no guilt here – life happens! 🤗 The important thing is you're thinking about it now. That shows you care about your health.\n\nHow about we start small? Even a 10-minute walk counts. What sounds doable for you today?`;
-  }
-
-  // Default encouraging response
-  const defaults = [
-    `Great to hear from you, ${profile.name}! What can I help you with today? Whether it's a workout suggestion, motivation, or checking your progress – I'm here for you! 💪`,
-    `Hey ${profile.name}! Ready to make today count? Tell me what's on your mind – need a workout idea, some motivation, or just want to chat about your fitness journey? 🌟`,
-    `${profile.name}! Every conversation is a step toward your goals. What would help you most right now – a quick workout, some motivation, or a progress check? 🎯`,
-  ];
-  return defaults[Math.floor(Math.random() * defaults.length)];
-};
+const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fitness-coach`;
 
 export function useChat(profile: UserProfile, workouts: Workout[]) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
-  const sendMessage = useCallback((content: string) => {
+  const sendMessage = useCallback(async (content: string) => {
     const userMessage: Message = {
       id: generateId(),
       role: 'user',
@@ -73,21 +22,133 @@ export function useChat(profile: UserProfile, workouts: Workout[]) {
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
 
-    // Simulate AI response delay
-    setTimeout(() => {
-      const response = getMotivationalResponse(content, profile, workouts);
+    let assistantContent = "";
+
+    const updateAssistantMessage = (chunk: string) => {
+      assistantContent += chunk;
+      setMessages(prev => {
+        const last = prev[prev.length - 1];
+        if (last?.role === 'assistant') {
+          return prev.map((m, i) => 
+            i === prev.length - 1 
+              ? { ...m, content: assistantContent } 
+              : m
+          );
+        }
+        return [...prev, {
+          id: generateId(),
+          role: 'assistant' as const,
+          content: assistantContent,
+          timestamp: new Date(),
+        }];
+      });
+    };
+
+    try {
+      const response = await fetch(CHAT_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          message: content,
+          userProfile: profile,
+          workoutHistory: workouts.slice(0, 10), // Send last 10 workouts for context
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        
+        if (response.status === 429) {
+          toast({
+            title: "Slow down! 😅",
+            description: "Too many requests. Wait a moment and try again.",
+            variant: "destructive",
+          });
+          throw new Error("Rate limited");
+        }
+        if (response.status === 402) {
+          toast({
+            title: "Credits needed",
+            description: "AI credits depleted. Add credits to continue chatting.",
+            variant: "destructive",
+          });
+          throw new Error("Credits depleted");
+        }
+        throw new Error(errorData.error || "Failed to get response");
+      }
+
+      if (!response.body) throw new Error("No response body");
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        // Process SSE lines
+        let newlineIndex: number;
+        while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
+          let line = buffer.slice(0, newlineIndex);
+          buffer = buffer.slice(newlineIndex + 1);
+
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (line.startsWith(":") || line.trim() === "") continue;
+          if (!line.startsWith("data: ")) continue;
+
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") break;
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const deltaContent = parsed.choices?.[0]?.delta?.content;
+            if (deltaContent) {
+              updateAssistantMessage(deltaContent);
+            }
+          } catch {
+            // Incomplete JSON, will be handled in next chunk
+            buffer = line + "\n" + buffer;
+            break;
+          }
+        }
+      }
+
+      // Handle any remaining buffer content
+      if (buffer.trim()) {
+        for (const raw of buffer.split("\n")) {
+          if (!raw || raw.startsWith(":") || !raw.startsWith("data: ")) continue;
+          const jsonStr = raw.slice(6).trim();
+          if (jsonStr === "[DONE]") continue;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const deltaContent = parsed.choices?.[0]?.delta?.content;
+            if (deltaContent) updateAssistantMessage(deltaContent);
+          } catch { /* ignore partial leftovers */ }
+        }
+      }
+
+    } catch (error) {
+      console.error("Chat error:", error);
       
-      const assistantMessage: Message = {
-        id: generateId(),
-        role: 'assistant',
-        content: response,
-        timestamp: new Date(),
-      };
-      
-      setMessages(prev => [...prev, assistantMessage]);
+      // Add a fallback message if we didn't get any AI response
+      if (!assistantContent) {
+        setMessages(prev => [...prev, {
+          id: generateId(),
+          role: 'assistant',
+          content: `Hey ${profile.name}! I'm having a quick technical hiccup, but I'm still here for you! 💪 Try asking again in a moment.`,
+          timestamp: new Date(),
+        }]);
+      }
+    } finally {
       setIsLoading(false);
-    }, 800 + Math.random() * 700);
-  }, [profile, workouts]);
+    }
+  }, [profile, workouts, toast]);
 
   return { messages, sendMessage, isLoading };
 }
