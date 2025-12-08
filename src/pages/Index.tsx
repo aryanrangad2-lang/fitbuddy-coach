@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { Workout, UserProfile } from "@/types/workout";
 import { StatsCard } from "@/components/StatsCard";
 import { WorkoutCard } from "@/components/WorkoutCard";
@@ -14,7 +15,8 @@ import {
   Plus,
   Dumbbell,
   MessageCircle,
-  X
+  X,
+  Utensils
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -101,15 +103,23 @@ const Index = () => {
               <p className="text-sm text-muted-foreground">Your AI Coach</p>
             </div>
           </div>
-          <Button 
-            variant="gradient" 
-            size="lg"
-            onClick={() => setShowForm(true)}
-            className="shadow-soft"
-          >
-            <Plus className="w-5 h-5" />
-            Log Workout
-          </Button>
+          <div className="flex items-center gap-2">
+            <Link to="/diet-plan">
+              <Button variant="outline" size="lg" className="shadow-card">
+                <Utensils className="w-5 h-5" />
+                Diet Plan
+              </Button>
+            </Link>
+            <Button 
+              variant="gradient" 
+              size="lg"
+              onClick={() => setShowForm(true)}
+              className="shadow-soft"
+            >
+              <Plus className="w-5 h-5" />
+              Log Workout
+            </Button>
+          </div>
         </div>
 
         {/* Greeting */}
