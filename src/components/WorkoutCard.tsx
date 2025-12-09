@@ -1,5 +1,6 @@
 import { Workout, WorkoutType } from "@/types/workout";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 import { 
   Bike, 
   Dumbbell, 
@@ -37,22 +38,41 @@ const workoutLabels: Record<WorkoutType, string> = {
 interface WorkoutCardProps {
   workout: Workout;
   className?: string;
+  index?: number;
 }
 
-export function WorkoutCard({ workout, className }: WorkoutCardProps) {
+export function WorkoutCard({ workout, className, index = 0 }: WorkoutCardProps) {
   const Icon = workoutIcons[workout.type];
   
   return (
-    <div 
+    <motion.div 
+      initial={{ opacity: 0, x: -20, scale: 0.95 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      transition={{ 
+        duration: 0.3, 
+        delay: index * 0.1,
+        ease: [0.25, 0.46, 0.45, 0.94]
+      }}
+      whileHover={{ 
+        x: 4,
+        scale: 1.01,
+        transition: { duration: 0.2 }
+      }}
+      whileTap={{ scale: 0.98 }}
       className={cn(
-        "w-full bg-card rounded-2xl p-4 shadow-card border border-border/50 transition-all duration-300 hover:shadow-glow hover:border-primary/30 hover:-translate-y-0.5 animate-scale-in",
+        "w-full bg-card rounded-2xl p-4 shadow-card border border-border/50 cursor-pointer",
+        "hover:shadow-glow hover:border-primary/30",
         className
       )}
     >
       <div className="flex items-start gap-4">
-        <div className="flex-shrink-0 w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-soft">
+        <motion.div 
+          className="flex-shrink-0 w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-soft"
+          whileHover={{ rotate: 5 }}
+          whileTap={{ scale: 0.9 }}
+        >
           <Icon className="w-6 h-6 text-primary-foreground" />
-        </div>
+        </motion.div>
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
@@ -64,18 +84,21 @@ export function WorkoutCard({ workout, className }: WorkoutCardProps) {
             </span>
           </div>
           
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
             <span className="flex items-center gap-1">
               <span className="font-medium text-foreground">{workout.duration}</span> min
             </span>
-            <span className={cn(
-              "px-2 py-0.5 rounded-full text-xs font-medium capitalize",
-              workout.intensity === 'low' && "bg-accent/20 text-accent",
-              workout.intensity === 'medium' && "bg-primary/20 text-primary",
-              workout.intensity === 'high' && "bg-destructive/20 text-destructive"
-            )}>
+            <motion.span 
+              className={cn(
+                "px-2 py-0.5 rounded-full text-xs font-medium capitalize",
+                workout.intensity === 'low' && "bg-accent/20 text-accent",
+                workout.intensity === 'medium' && "bg-primary/20 text-primary",
+                workout.intensity === 'high' && "bg-destructive/20 text-destructive"
+              )}
+              whileHover={{ scale: 1.1 }}
+            >
               {workout.intensity}
-            </span>
+            </motion.span>
             {workout.calories && (
               <span className="flex items-center gap-1">
                 <Flame className="w-3.5 h-3.5 text-primary" />
@@ -85,12 +108,17 @@ export function WorkoutCard({ workout, className }: WorkoutCardProps) {
           </div>
           
           {workout.notes && (
-            <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
+            <motion.p 
+              className="mt-2 text-sm text-muted-foreground line-clamp-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
               {workout.notes}
-            </p>
+            </motion.p>
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

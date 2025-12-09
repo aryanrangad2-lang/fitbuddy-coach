@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { WorkoutType, Intensity, Workout } from "@/types/workout";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   Bike, 
   Dumbbell, 
@@ -55,46 +56,85 @@ export function WorkoutForm({ onSubmit, onClose }: WorkoutFormProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-      <div className="bg-card rounded-3xl p-6 w-full max-w-md shadow-soft animate-scale-in">
+    <motion.div 
+      className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
+      onClick={onClose}
+    >
+      <motion.div 
+        className="bg-card rounded-3xl p-6 w-full max-w-md shadow-glow border border-border/50"
+        initial={{ opacity: 0, scale: 0.9, y: 40 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 40 }}
+        transition={{ 
+          duration: 0.3, 
+          ease: [0.25, 0.46, 0.45, 0.94]
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-foreground">Log Workout</h2>
-          <button 
+          <motion.h2 
+            className="text-xl font-bold text-foreground"
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            Log Workout
+          </motion.h2>
+          <motion.button 
             onClick={onClose}
             className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-muted transition-colors"
+            whileHover={{ scale: 1.1, rotate: 90 }}
+            whileTap={{ scale: 0.9 }}
           >
             <X className="w-4 h-4 text-muted-foreground" />
-          </button>
+          </motion.button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Workout Type */}
-          <div>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
             <Label className="text-sm font-medium text-foreground mb-3 block">
               What did you do?
             </Label>
             <div className="grid grid-cols-3 gap-2">
-              {workoutTypes.map(({ type: t, icon: Icon, label }) => (
-                <button
+              {workoutTypes.map(({ type: t, icon: Icon, label }, index) => (
+                <motion.button
                   key={t}
                   type="button"
                   onClick={() => setType(t)}
                   className={cn(
-                    "flex flex-col items-center gap-2 p-3 rounded-xl transition-all duration-200",
+                    "flex flex-col items-center gap-2 p-3 rounded-xl transition-colors",
                     type === t 
                       ? "gradient-primary text-primary-foreground shadow-soft" 
                       : "bg-secondary text-secondary-foreground hover:bg-muted"
                   )}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.15 + index * 0.05 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   <Icon className="w-5 h-5" />
                   <span className="text-xs font-medium">{label}</span>
-                </button>
+                </motion.button>
               ))}
             </div>
-          </div>
+          </motion.div>
 
           {/* Duration */}
-          <div>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
             <Label htmlFor="duration" className="text-sm font-medium text-foreground mb-2 block">
               Duration (minutes)
             </Label>
@@ -108,36 +148,49 @@ export function WorkoutForm({ onSubmit, onClose }: WorkoutFormProps) {
               min="1"
               required
             />
-          </div>
+          </motion.div>
 
           {/* Intensity */}
-          <div>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+          >
             <Label className="text-sm font-medium text-foreground mb-3 block">
               How hard was it?
             </Label>
             <div className="flex gap-2">
-              {intensities.map(({ value, label }) => (
-                <button
+              {intensities.map(({ value, label }, index) => (
+                <motion.button
                   key={value}
                   type="button"
                   onClick={() => setIntensity(value)}
                   className={cn(
-                    "flex-1 py-2.5 px-4 rounded-xl text-sm font-medium transition-all duration-200",
+                    "flex-1 py-2.5 px-4 rounded-xl text-sm font-medium transition-colors",
                     intensity === value 
                       ? value === 'low' ? "bg-accent text-accent-foreground"
                         : value === 'medium' ? "gradient-primary text-primary-foreground"
                         : "bg-destructive text-destructive-foreground"
                       : "bg-secondary text-secondary-foreground hover:bg-muted"
                   )}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 + index * 0.05 }}
                 >
                   {label}
-                </button>
+                </motion.button>
               ))}
             </div>
-          </div>
+          </motion.div>
 
           {/* Calories (optional) */}
-          <div>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+          >
             <Label htmlFor="calories" className="text-sm font-medium text-foreground mb-2 block">
               Calories burned (optional)
             </Label>
@@ -150,10 +203,14 @@ export function WorkoutForm({ onSubmit, onClose }: WorkoutFormProps) {
               placeholder="250"
               min="0"
             />
-          </div>
+          </motion.div>
 
           {/* Notes (optional) */}
-          <div>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
             <Label htmlFor="notes" className="text-sm font-medium text-foreground mb-2 block">
               Notes (optional)
             </Label>
@@ -165,14 +222,20 @@ export function WorkoutForm({ onSubmit, onClose }: WorkoutFormProps) {
               placeholder="How did it feel? Any achievements?"
               rows={3}
             />
-          </div>
+          </motion.div>
 
-          <Button type="submit" variant="gradient" size="lg" className="w-full">
-            <Plus className="w-5 h-5" />
-            Log Workout
-          </Button>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45 }}
+          >
+            <Button type="submit" variant="gradient" size="lg" className="w-full">
+              <Plus className="w-5 h-5" />
+              Log Workout
+            </Button>
+          </motion.div>
         </form>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
