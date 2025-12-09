@@ -14,12 +14,11 @@ interface ChatInterfaceProps {
 export function ChatInterface({ messages, onSendMessage, isLoading }: ChatInterfaceProps) {
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isLoading]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,8 +34,8 @@ export function ChatInterface({ messages, onSendMessage, isLoading }: ChatInterf
     "Motivate me!",
   ];
 
-  return (
-    <div className="flex flex-col h-full bg-secondary/50 rounded-3xl overflow-hidden">
+return (
+    <div className="flex flex-col h-full min-h-0 bg-secondary/50 rounded-3xl overflow-hidden">
       {/* Header */}
       <div className="p-4 gradient-primary text-primary-foreground">
         <div className="flex items-center gap-3">
@@ -53,7 +52,7 @@ export function ChatInterface({ messages, onSendMessage, isLoading }: ChatInterf
       {/* Messages */}
       <div 
         ref={scrollRef}
-        className="flex-1 overflow-y-auto p-4 space-y-4"
+        className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0"
       >
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center p-6">
@@ -98,6 +97,7 @@ export function ChatInterface({ messages, onSendMessage, isLoading }: ChatInterf
             </div>
           </div>
         )}
+        <div ref={bottomRef} />
       </div>
 
       {/* Input */}

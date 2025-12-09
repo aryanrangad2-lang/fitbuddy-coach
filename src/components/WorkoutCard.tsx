@@ -45,13 +45,13 @@ export function WorkoutCard({ workout, className }: WorkoutCardProps) {
   return (
     <div 
       className={cn(
-        "bg-card rounded-2xl p-4 shadow-card transition-all duration-300 hover:shadow-soft hover:-translate-y-0.5 animate-scale-in",
+        "w-full bg-card rounded-2xl p-4 shadow-card border border-border/50 transition-all duration-300 hover:shadow-glow hover:border-primary/30 hover:-translate-y-0.5 animate-scale-in",
         className
       )}
     >
       <div className="flex items-start gap-4">
-        <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
-          <Icon className="w-6 h-6 text-primary" />
+        <div className="flex-shrink-0 w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-soft">
+          <Icon className="w-6 h-6 text-primary-foreground" />
         </div>
         
         <div className="flex-1 min-w-0">

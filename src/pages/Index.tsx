@@ -90,10 +90,10 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen gradient-warm">
+    <div className="min-h-screen gradient-warm overflow-y-auto">
       {/* Header */}
-      <header className="px-4 pt-8 pb-4 max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
+      <header className="px-4 pt-6 pb-4 max-w-7xl mx-auto">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl gradient-primary flex items-center justify-center shadow-soft">
               <Dumbbell className="w-6 h-6 text-primary-foreground" />
@@ -103,21 +103,23 @@ const Index = () => {
               <p className="text-sm text-muted-foreground">Your AI Coach</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Link to="/diet-plan">
-              <Button variant="outline" size="lg" className="shadow-card">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Link to="/diet-plan" className="flex-1 sm:flex-initial">
+              <Button variant="outline" size="lg" className="shadow-card w-full sm:w-auto">
                 <Utensils className="w-5 h-5" />
-                Diet Plan
+                <span className="hidden sm:inline">Diet Plan</span>
+                <span className="sm:hidden">Diet</span>
               </Button>
             </Link>
             <Button 
               variant="gradient" 
               size="lg"
               onClick={() => setShowForm(true)}
-              className="shadow-soft"
+              className="shadow-soft flex-1 sm:flex-initial"
             >
               <Plus className="w-5 h-5" />
-              Log Workout
+              <span className="hidden sm:inline">Log Workout</span>
+              <span className="sm:hidden">Log</span>
             </Button>
           </div>
         </div>
@@ -137,12 +139,12 @@ const Index = () => {
       </header>
 
       {/* Main Content */}
-      <main className="px-4 pb-24 max-w-7xl mx-auto">
+      <main className="px-4 pb-28 max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Left Column - Stats & Workouts */}
           <div className="lg:col-span-2 space-y-6">
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full">
               <StatsCard 
                 icon={Flame} 
                 label="Day Streak" 
@@ -170,7 +172,7 @@ const Index = () => {
             </div>
 
             {/* Recent Workouts */}
-            <section>
+            <section className="w-full">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-foreground">Recent Workouts</h2>
                 <span className="text-sm text-muted-foreground">
@@ -179,10 +181,11 @@ const Index = () => {
               </div>
               
               {workouts.length > 0 ? (
-                <div className="space-y-3">
+                <div className="flex flex-col gap-3 w-full">
                   {workouts.slice(0, 5).map((workout, index) => (
                     <div 
                       key={workout.id} 
+                      className="w-full"
                       style={{ animationDelay: `${index * 100}ms` }}
                     >
                       <WorkoutCard workout={workout} />
@@ -190,9 +193,9 @@ const Index = () => {
                   ))}
                 </div>
               ) : (
-                <div className="bg-card rounded-2xl p-8 text-center shadow-card">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-secondary flex items-center justify-center">
-                    <Dumbbell className="w-8 h-8 text-muted-foreground" />
+                <div className="bg-card rounded-2xl p-8 text-center shadow-card border border-border/50 w-full">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full gradient-primary flex items-center justify-center shadow-soft">
+                    <Dumbbell className="w-8 h-8 text-primary-foreground" />
                   </div>
                   <h3 className="font-semibold text-foreground mb-2">No workouts yet</h3>
                   <p className="text-muted-foreground text-sm mb-4">
@@ -209,7 +212,7 @@ const Index = () => {
 
           {/* Right Column - Chat */}
           <div className="hidden lg:block">
-            <div className="sticky top-6 h-[calc(100vh-8rem)]">
+            <div className="sticky top-6 h-[calc(100vh-6rem)] min-h-[500px]">
               <ChatInterface 
                 messages={messages} 
                 onSendMessage={sendMessage}
@@ -231,9 +234,9 @@ const Index = () => {
       {/* Mobile Chat Modal */}
       {showChat && (
         <div className="lg:hidden fixed inset-0 z-50 bg-background animate-fade-in">
-          <div className="h-full flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b border-border">
-              <h2 className="text-lg font-semibold">Chat with FitBuddy</h2>
+          <div className="h-[100dvh] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
+              <h2 className="text-lg font-semibold text-foreground">Chat with FitBuddy</h2>
               <button 
                 onClick={() => setShowChat(false)}
                 className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center"
@@ -241,7 +244,7 @@ const Index = () => {
                 <X className="w-5 h-5 text-muted-foreground" />
               </button>
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-h-0 overflow-hidden">
               <ChatInterface 
                 messages={messages} 
                 onSendMessage={sendMessage}
