@@ -5,6 +5,7 @@ import { StatsCard } from "@/components/StatsCard";
 import { WorkoutCard } from "@/components/WorkoutCard";
 import { WorkoutForm } from "@/components/WorkoutForm";
 import { ChatInterface } from "@/components/ChatInterface";
+import { ProgressCharts } from "@/components/ProgressCharts";
 import { useChat } from "@/hooks/useChat";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -203,6 +204,9 @@ const Index = () => {
                 />
               ))}
             </div>
+
+            {/* Progress Charts */}
+            <ProgressCharts workouts={workouts} />
 
             {/* Recent Workouts */}
             <motion.section 
