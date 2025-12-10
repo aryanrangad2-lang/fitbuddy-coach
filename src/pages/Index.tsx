@@ -131,6 +131,15 @@ const Index = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2, duration: 0.4 }}
           >
+            <Link to="/workout-planner" className="flex-1 sm:flex-initial">
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button variant="outline" size="lg" className="shadow-card w-full sm:w-auto">
+                  <Target className="w-5 h-5" />
+                  <span className="hidden sm:inline">30-Day Plan</span>
+                  <span className="sm:hidden">Plan</span>
+                </Button>
+              </motion.div>
+            </Link>
             <Link to="/diet-plan" className="flex-1 sm:flex-initial">
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Button variant="outline" size="lg" className="shadow-card w-full sm:w-auto">
