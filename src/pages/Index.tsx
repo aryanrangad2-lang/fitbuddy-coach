@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Workout, UserProfile } from "@/types/workout";
 import { StatsCard } from "@/components/StatsCard";
@@ -22,44 +22,61 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-// Mock data for initial state
-const initialWorkouts: Workout[] = [
-  {
-    id: '1',
-    type: 'running',
-    duration: 35,
-    intensity: 'medium',
-    calories: 320,
-    notes: 'Morning run in the park. Felt great!',
-    date: new Date(Date.now() - 1000 * 60 * 60 * 24),
-  },
-  {
-    id: '2',
-    type: 'strength',
-    duration: 45,
-    intensity: 'high',
-    calories: 280,
-    notes: 'Upper body focus. New PR on bench press!',
-    date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2),
-  },
-  {
-    id: '3',
-    type: 'yoga',
-    duration: 30,
-    intensity: 'low',
-    date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3),
-  },
-];
+const WORKOUTS_STORAGE_KEY = 'fitbuddy_workouts';
+
+const loadWorkouts = (): Workout[] => {
+  try {
+    const saved = localStorage.getItem(WORKOUTS_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return parsed.map((w: any) => ({ ...w, date: new Date(w.date) }));
+    }
+  } catch {}
+  return [];
+};
+
+const calculateStreak = (workouts: Workout[]): number => {
+  if (workouts.length === 0) return 0;
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const uniqueDays = new Set(
+    workouts.map(w => {
+      const d = new Date(w.date);
+      d.setHours(0, 0, 0, 0);
+      return d.getTime();
+    })
+  );
+  
+  let streak = 0;
+  let checkDate = new Date(today);
+  
+  if (!uniqueDays.has(checkDate.getTime())) {
+    checkDate.setDate(checkDate.getDate() - 1);
+  }
+  
+  while (uniqueDays.has(checkDate.getTime())) {
+    streak++;
+    checkDate.setDate(checkDate.getDate() - 1);
+  }
+  
+  return streak;
+};
 
 const Index = () => {
-  const [workouts, setWorkouts] = useState<Workout[]>(initialWorkouts);
+  const [workouts, setWorkouts] = useState<Workout[]>(loadWorkouts);
   const [showForm, setShowForm] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const { toast } = useToast();
 
+  useEffect(() => {
+    localStorage.setItem(WORKOUTS_STORAGE_KEY, JSON.stringify(workouts));
+  }, [workouts]);
+
   const profile: UserProfile = useMemo(() => ({
     name: 'Champion',
-    streak: workouts.length > 0 ? Math.min(workouts.length, 7) : 0,
+    streak: calculateStreak(workouts),
     totalWorkouts: workouts.length,
     totalMinutes: workouts.reduce((acc, w) => acc + w.duration, 0),
   }), [workouts]);
