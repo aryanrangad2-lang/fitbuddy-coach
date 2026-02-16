@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Workout, UserProfile } from "@/types/workout";
 import { StatsCard } from "@/components/StatsCard";
 import { WorkoutCard } from "@/components/WorkoutCard";
@@ -7,6 +7,7 @@ import { WorkoutForm } from "@/components/WorkoutForm";
 import { ChatInterface } from "@/components/ChatInterface";
 import { ProgressCharts } from "@/components/ProgressCharts";
 import { useChat } from "@/hooks/useChat";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -18,7 +19,11 @@ import {
   Dumbbell,
   MessageCircle,
   X,
-  Utensils
+  Utensils,
+  User,
+  Users,
+  LogIn,
+  LogOut
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -68,6 +73,8 @@ const Index = () => {
   const [workouts, setWorkouts] = useState<Workout[]>(loadWorkouts);
   const [showForm, setShowForm] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -75,7 +82,7 @@ const Index = () => {
   }, [workouts]);
 
   const profile: UserProfile = useMemo(() => ({
-    name: 'Champion',
+    name: user?.user_metadata?.full_name || user?.user_metadata?.name || 'Champion',
     streak: calculateStreak(workouts),
     totalWorkouts: workouts.length,
     totalMinutes: workouts.reduce((acc, w) => acc + w.duration, 0),
@@ -144,11 +151,40 @@ const Index = () => {
             </div>
           </motion.div>
           <motion.div 
-            className="flex items-center gap-2 w-full sm:w-auto"
+            className="flex items-center gap-2 w-full sm:w-auto flex-wrap"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2, duration: 0.4 }}
           >
+            {user ? (
+              <>
+                <Link to="/profile">
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Button variant="outline" size="lg" className="shadow-card">
+                      <User className="w-5 h-5" />
+                      <span className="hidden sm:inline">Profile</span>
+                    </Button>
+                  </motion.div>
+                </Link>
+                <Link to="/community">
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Button variant="outline" size="lg" className="shadow-card">
+                      <Users className="w-5 h-5" />
+                      <span className="hidden sm:inline">Community</span>
+                    </Button>
+                  </motion.div>
+                </Link>
+              </>
+            ) : (
+              <Link to="/auth">
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button variant="outline" size="lg" className="shadow-card">
+                    <LogIn className="w-5 h-5" />
+                    <span className="hidden sm:inline">Sign In</span>
+                  </Button>
+                </motion.div>
+              </Link>
+            )}
             <Link to="/workout-planner" className="flex-1 sm:flex-initial">
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Button variant="outline" size="lg" className="shadow-card w-full sm:w-auto">
@@ -179,6 +215,13 @@ const Index = () => {
                 <span className="sm:hidden">Log</span>
               </Button>
             </motion.div>
+            {user && (
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button variant="ghost" size="lg" onClick={signOut}>
+                  <LogOut className="w-5 h-5" />
+                </Button>
+              </motion.div>
+            )}
           </motion.div>
         </div>
 
