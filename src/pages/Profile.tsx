@@ -9,6 +9,27 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Camera, Edit2, Save, X, Image, Video, Trash2, UserPlus, UserMinus, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { RankBadge } from "@/components/RankBadge";
+
+const WORKOUTS_STORAGE_KEY = 'fitbuddy_workouts';
+const getWorkoutStats = () => {
+  try {
+    const saved = localStorage.getItem(WORKOUTS_STORAGE_KEY);
+    if (saved) {
+      const workouts = JSON.parse(saved).map((w: any) => ({ ...w, date: new Date(w.date) }));
+      const totalWorkouts = workouts.length;
+      const totalMinutes = workouts.reduce((a: number, w: any) => a + (w.duration || 0), 0);
+      // simple streak calc
+      const today = new Date(); today.setHours(0,0,0,0);
+      const days = new Set(workouts.map((w: any) => { const d = new Date(w.date); d.setHours(0,0,0,0); return d.getTime(); }));
+      let streak = 0, check = new Date(today);
+      if (!days.has(check.getTime())) check.setDate(check.getDate() - 1);
+      while (days.has(check.getTime())) { streak++; check.setDate(check.getDate() - 1); }
+      return { totalWorkouts, totalMinutes, streak };
+    }
+  } catch {}
+  return { totalWorkouts: 0, totalMinutes: 0, streak: 0 };
+};
 
 interface Profile {
   user_id: string;
@@ -49,6 +70,7 @@ const ProfilePage = () => {
 
   const targetUserId = userId || user?.id;
   const isOwnProfile = targetUserId === user?.id;
+  const workoutStats = isOwnProfile ? getWorkoutStats() : { totalWorkouts: 0, totalMinutes: 0, streak: 0 };
 
   useEffect(() => {
     if (targetUserId) {
@@ -213,8 +235,21 @@ const ProfilePage = () => {
                 </div>
               ) : (
                 <>
-                  <h2 className="text-xl font-bold text-foreground truncate">{profile.display_name || "Unnamed"}</h2>
-                  {profile.username && <p className="text-sm text-primary">@{profile.username}</p>}
+                  <div className="flex items-center gap-3">
+                    <div>
+                      <h2 className="text-xl font-bold text-foreground truncate">{profile.display_name || "Unnamed"}</h2>
+                      {profile.username && <p className="text-sm text-primary">@{profile.username}</p>}
+                    </div>
+                    {isOwnProfile && (
+                      <RankBadge
+                        totalWorkouts={workoutStats.totalWorkouts}
+                        totalMinutes={workoutStats.totalMinutes}
+                        streak={workoutStats.streak}
+                        showProgress={false}
+                        size="sm"
+                      />
+                    )}
+                  </div>
                   {profile.bio && <p className="text-sm text-muted-foreground mt-1">{profile.bio}</p>}
                   <div className="flex items-center gap-4 mt-3 text-sm">
                     <span className="text-foreground font-semibold">{followersCount} <span className="text-muted-foreground font-normal">followers</span></span>
