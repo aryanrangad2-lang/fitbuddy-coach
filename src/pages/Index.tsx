@@ -23,9 +23,11 @@ import {
   User,
   Users,
   LogIn,
-  LogOut
+  LogOut,
+  Trophy
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { RankBadge, RankTierList } from "@/components/RankBadge";
 
 const WORKOUTS_STORAGE_KEY = 'fitbuddy_workouts';
 
@@ -233,15 +235,26 @@ const Index = () => {
           transition={{ delay: 0.3, duration: 0.4 }}
           whileHover={{ scale: 1.01 }}
         >
-          <h2 className="text-xl font-semibold text-foreground mb-1">
-            {getGreeting()}, {profile.name}! 👋
-          </h2>
-          <p className="text-muted-foreground">
-            {profile.streak > 0 
-              ? `You're on a ${profile.streak}-day streak! Keep the momentum going.`
-              : "Ready to start your fitness journey today?"
-            }
-          </p>
+          <div className="flex items-center gap-5">
+            <RankBadge
+              totalWorkouts={profile.totalWorkouts}
+              totalMinutes={profile.totalMinutes}
+              streak={profile.streak}
+              showProgress={true}
+              size="md"
+            />
+            <div className="flex-1 min-w-0">
+              <h2 className="text-xl font-semibold text-foreground mb-1">
+                {getGreeting()}, {profile.name}! 👋
+              </h2>
+              <p className="text-muted-foreground text-sm">
+                {profile.streak > 0 
+                  ? `You're on a ${profile.streak}-day streak! Keep the momentum going.`
+                  : "Ready to start your fitness journey today?"
+                }
+              </p>
+            </div>
+          </div>
         </motion.div>
       </motion.header>
 
@@ -264,6 +277,19 @@ const Index = () => {
                 />
               ))}
             </div>
+
+            {/* Rank Tiers */}
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45 }}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <Trophy className="w-5 h-5 text-primary" />
+                <h2 className="text-lg font-semibold text-foreground">Rank Tiers</h2>
+              </div>
+              <RankTierList />
+            </motion.section>
 
             {/* Progress Charts */}
             <ProgressCharts workouts={workouts} />
