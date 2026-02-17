@@ -28,6 +28,8 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { RankBadge, RankTierList } from "@/components/RankBadge";
+import { WaterTracker } from "@/components/WaterTracker";
+import { FoodScanner } from "@/components/FoodScanner";
 
 const WORKOUTS_STORAGE_KEY = 'fitbuddy_workouts';
 
@@ -293,6 +295,24 @@ const Index = () => {
 
             {/* Progress Charts */}
             <ProgressCharts workouts={workouts} />
+
+            {/* Water Tracker & Food Scanner */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+              >
+                <WaterTracker />
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.55 }}
+              >
+                <FoodScanner />
+              </motion.div>
+            </div>
 
             {/* Recent Workouts */}
             <motion.section 

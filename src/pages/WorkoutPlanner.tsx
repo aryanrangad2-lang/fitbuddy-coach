@@ -24,6 +24,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { workoutPlans, DayPlan, Exercise, ExerciseType } from '@/data/workoutPlans';
+import { ExerciseAnimation } from '@/components/ExerciseAnimation';
 
 type Level = 'beginner' | 'intermediate' | 'advanced';
 
@@ -472,12 +473,10 @@ const ExerciseCard = ({ exercise, index }: { exercise: Exercise; index: number }
       <Card className="bg-card/50 border-border/50 hover:border-primary/30 transition-all duration-300">
         <CardContent className="p-4">
           <div className="flex items-start gap-4">
-            <motion.div
-              whileHover={{ rotate: 10 }}
-              className={`p-2 rounded-lg bg-background/50 ${colorClass}`}
-            >
-              <Icon className="h-5 w-5" />
-            </motion.div>
+            <ExerciseAnimation
+              exerciseName={exercise.name}
+              type={exercise.type}
+            />
             <div className="flex-1 min-w-0">
               <h4 className="font-semibold text-foreground">{exercise.name}</h4>
               <div className="flex flex-wrap items-center gap-2 mt-1 text-sm">
