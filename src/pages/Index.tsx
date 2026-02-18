@@ -24,7 +24,8 @@ import {
   Users,
   LogIn,
   LogOut,
-  Trophy
+  Trophy,
+  MessageSquare
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { RankBadge, RankTierList } from "@/components/RankBadge";
@@ -175,6 +176,14 @@ const Index = () => {
                     <Button variant="outline" size="lg" className="shadow-card">
                       <Users className="w-5 h-5" />
                       <span className="hidden sm:inline">Community</span>
+                    </Button>
+                  </motion.div>
+                </Link>
+                <Link to="/messages">
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Button variant="outline" size="lg" className="shadow-card">
+                      <MessageSquare className="w-5 h-5" />
+                      <span className="hidden sm:inline">Messages</span>
                     </Button>
                   </motion.div>
                 </Link>
