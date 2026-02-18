@@ -18,13 +18,16 @@ import {
   Target,
   ArrowLeft,
   Lightbulb,
-  Clock
+  Clock,
+  ChevronDown,
+  Info
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { workoutPlans, DayPlan, Exercise, ExerciseType } from '@/data/workoutPlans';
-import { ExerciseAnimation } from '@/components/ExerciseAnimation';
+import { ExerciseAnimation3D } from '@/components/ExerciseAnimation3D';
+import { WorkoutCompletionModal } from '@/components/WorkoutCompletionModal';
 
 type Level = 'beginner' | 'intermediate' | 'advanced';
 
@@ -54,11 +57,22 @@ const getExerciseColor = (type: ExerciseType) => {
   }
 };
 
+const getTypeBadge = (type: ExerciseType) => {
+  switch (type) {
+    case 'strength': return { label: 'Strength', bg: 'bg-primary/15', text: 'text-primary' };
+    case 'cardio': return { label: 'Cardio', bg: 'bg-red-500/15', text: 'text-red-400' };
+    case 'rest': return { label: 'Rest', bg: 'bg-blue-500/15', text: 'text-blue-400' };
+    case 'flexibility': return { label: 'Flex', bg: 'bg-purple-500/15', text: 'text-purple-400' };
+    default: return { label: 'Exercise', bg: 'bg-muted', text: 'text-muted-foreground' };
+  }
+};
+
 const WorkoutPlanner = () => {
   const [selectedLevel, setSelectedLevel] = useState<Level | null>(null);
   const [currentDay, setCurrentDay] = useState<number>(0);
   const [completedDays, setCompletedDays] = useState<number[]>([]);
   const [planStarted, setPlanStarted] = useState(false);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
   const todayRef = useRef<HTMLDivElement>(null);
 
   // Load from localStorage
@@ -110,6 +124,7 @@ const WorkoutPlanner = () => {
     setCompletedDays(newCompleted);
     setCurrentDay(nextDay > 30 ? 30 : nextDay);
     saveProgress(selectedLevel, nextDay > 30 ? 30 : nextDay, newCompleted);
+    setShowCompletionModal(true);
   };
 
   const resetProgress = () => {
@@ -144,10 +159,7 @@ const WorkoutPlanner = () => {
           className="flex items-center gap-4 mb-6"
         >
           <Link to="/">
-            <motion.div
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
+            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
               <Button variant="ghost" size="icon" className="rounded-full">
                 <ArrowLeft className="h-5 w-5" />
               </Button>
@@ -268,11 +280,7 @@ const WorkoutPlanner = () => {
               className="space-y-6"
             >
               {/* Progress Section */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.2 }}
-              >
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
                 <Card className="overflow-hidden">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-4">
@@ -282,9 +290,7 @@ const WorkoutPlanner = () => {
                         </div>
                         <div>
                           <p className="text-sm text-muted-foreground">Current Progress</p>
-                          <p className="text-xl font-bold text-foreground">
-                            Day {Math.min(currentDay, 30)} / 30
-                          </p>
+                          <p className="text-xl font-bold text-foreground">Day {Math.min(currentDay, 30)} / 30</p>
                         </div>
                       </div>
                       <div className="text-right">
@@ -292,7 +298,6 @@ const WorkoutPlanner = () => {
                         <p className="text-xl font-bold text-primary">{completedDays.length} days</p>
                       </div>
                     </div>
-                    
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Progress</span>
@@ -326,9 +331,7 @@ const WorkoutPlanner = () => {
                       >
                         <Trophy className="h-16 w-16 mx-auto mb-4 text-primary" />
                       </motion.div>
-                      <h2 className="text-2xl font-bold text-foreground mb-2">
-                        🎉 Plan Completed!
-                      </h2>
+                      <h2 className="text-2xl font-bold text-foreground mb-2">🎉 Plan Completed!</h2>
                       <p className="text-muted-foreground mb-6">
                         Congratulations! You've finished the {currentPlan.name}.
                       </p>
@@ -455,35 +458,52 @@ const WorkoutPlanner = () => {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Workout Completion Modal */}
+      <WorkoutCompletionModal
+        isOpen={showCompletionModal}
+        onClose={() => setShowCompletionModal(false)}
+        dayNumber={currentDay - 1}
+        tomorrowTitle={tomorrowWorkout?.title}
+        isLastDay={completedDays.length >= 30}
+      />
     </div>
   );
 };
 
 const ExerciseCard = ({ exercise, index }: { exercise: Exercise; index: number }) => {
-  const Icon = getExerciseIcon(exercise.type);
-  const colorClass = getExerciseColor(exercise.type);
+  const [expanded, setExpanded] = useState(false);
+  const badge = getTypeBadge(exercise.type);
 
   return (
     <motion.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: 0.1 * index }}
-      whileHover={{ scale: 1.01, x: 4 }}
     >
-      <Card className="bg-card/50 border-border/50 hover:border-primary/30 transition-all duration-300">
+      <Card className="bg-card/50 border-border/50 hover:border-primary/30 transition-all duration-300 overflow-hidden">
+        {/* Header Row */}
         <CardContent className="p-4">
           <div className="flex items-start gap-4">
-            <ExerciseAnimation
-              exerciseName={exercise.name}
-              type={exercise.type}
-            />
+            {/* 3D Animation - compact */}
+            <div className="shrink-0">
+              <ExerciseAnimation3D
+                exerciseName={exercise.name}
+                type={exercise.type}
+                expanded={false}
+              />
+            </div>
+
             <div className="flex-1 min-w-0">
-              <h4 className="font-semibold text-foreground">{exercise.name}</h4>
+              <div className="flex items-start justify-between gap-2">
+                <h4 className="font-semibold text-foreground">{exercise.name}</h4>
+                <span className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-medium ${badge.bg} ${badge.text}`}>
+                  {badge.label}
+                </span>
+              </div>
               <div className="flex flex-wrap items-center gap-2 mt-1 text-sm">
                 {exercise.sets && exercise.reps && (
-                  <span className="text-primary font-medium">
-                    {exercise.sets} × {exercise.reps}
-                  </span>
+                  <span className="text-primary font-medium">{exercise.sets} × {exercise.reps}</span>
                 )}
                 {exercise.duration && (
                   <span className="flex items-center gap-1 text-muted-foreground">
@@ -492,14 +512,50 @@ const ExerciseCard = ({ exercise, index }: { exercise: Exercise; index: number }
                   </span>
                 )}
               </div>
-              {exercise.tips && (
+              {exercise.tips && !expanded && (
                 <div className="flex items-start gap-1.5 mt-2 text-sm text-muted-foreground">
                   <Lightbulb className="h-3.5 w-3.5 mt-0.5 text-yellow-500 shrink-0" />
-                  <span>{exercise.tips}</span>
+                  <span className="line-clamp-1">{exercise.tips}</span>
                 </div>
               )}
             </div>
+
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="shrink-0 p-1 rounded-lg hover:bg-muted transition-colors"
+            >
+              <motion.div animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              </motion.div>
+            </button>
           </div>
+
+          {/* Expanded 3D View with muscle groups */}
+          <AnimatePresence>
+            {expanded && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="overflow-hidden"
+              >
+                <div className="mt-4 pt-4 border-t border-border/50">
+                  <ExerciseAnimation3D
+                    exerciseName={exercise.name}
+                    type={exercise.type}
+                    expanded={true}
+                  />
+                  {exercise.tips && (
+                    <div className="flex items-start gap-1.5 mt-3 text-sm text-muted-foreground bg-muted/50 rounded-xl p-3">
+                      <Lightbulb className="h-3.5 w-3.5 mt-0.5 text-yellow-500 shrink-0" />
+                      <span>{exercise.tips}</span>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </CardContent>
       </Card>
     </motion.div>
