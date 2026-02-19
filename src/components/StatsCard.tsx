@@ -21,57 +21,75 @@ export function StatsCard({
   className,
   index = 0
 }: StatsCardProps) {
+  const isPrimary = variant === 'primary' || variant === 'accent';
+
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      initial={{ opacity: 0, y: 24, scale: 0.92 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ 
-        duration: 0.35, 
-        delay: index * 0.08,
+        duration: 0.4, 
+        delay: index * 0.07,
         ease: [0.25, 0.46, 0.45, 0.94]
       }}
       whileHover={{ 
-        y: -4, 
-        scale: 1.02,
+        y: -5, 
+        scale: 1.03,
         transition: { duration: 0.2 }
       }}
-      whileTap={{ scale: 0.98 }}
+      whileTap={{ scale: 0.97 }}
       className={cn(
-        "relative overflow-hidden rounded-2xl p-5 shadow-card cursor-pointer",
-        variant === 'default' && "bg-card border border-border/50",
-        variant === 'primary' && "gradient-primary text-primary-foreground",
-        variant === 'accent' && "gradient-accent text-accent-foreground",
+        "relative overflow-hidden rounded-2xl p-4 cursor-pointer group",
+        isPrimary
+          ? "gradient-primary shadow-soft"
+          : "bg-card border border-border/40 shadow-card hover:neon-border",
         className
       )}
     >
+      {/* Background glow for default */}
+      {!isPrimary && (
+        <div className="absolute -top-4 -right-4 w-16 h-16 rounded-full bg-primary/5 blur-xl group-hover:bg-primary/15 transition-colors duration-500" />
+      )}
+
+      {/* Icon */}
       <motion.div 
         className={cn(
-          "inline-flex items-center justify-center w-10 h-10 rounded-xl mb-3",
-          variant === 'default' && "bg-secondary",
-          variant !== 'default' && "bg-white/20"
+          "inline-flex items-center justify-center w-9 h-9 rounded-xl mb-3",
+          isPrimary ? "bg-black/20" : "bg-primary/10"
         )}
-        whileHover={{ rotate: [0, -10, 10, 0] }}
-        transition={{ duration: 0.4 }}
+        whileHover={{ rotate: [0, -8, 8, 0] }}
+        transition={{ duration: 0.35 }}
       >
         <Icon className={cn(
-          "w-5 h-5",
-          variant === 'default' && "text-primary"
-        )} />
+          "w-4.5 h-4.5",
+          isPrimary ? "text-primary-foreground" : "text-primary"
+        )} style={{ width: '18px', height: '18px' }} />
       </motion.div>
+
       <p className={cn(
-        "text-sm font-medium mb-1",
-        variant === 'default' && "text-muted-foreground"
+        "text-xs font-medium mb-1 uppercase tracking-wider",
+        isPrimary ? "text-primary-foreground/70" : "text-muted-foreground"
       )}>
         {label}
       </p>
       <motion.p 
-        className="text-2xl font-bold"
+        className={cn(
+          "text-2xl font-black leading-none",
+          isPrimary ? "text-primary-foreground" : "text-foreground"
+        )}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 + index * 0.08 }}
+        transition={{ delay: 0.15 + index * 0.07 }}
       >
         {value}
-        {suffix && <span className="text-lg font-medium ml-1">{suffix}</span>}
+        {suffix && (
+          <span className={cn(
+            "text-sm font-semibold ml-1",
+            isPrimary ? "text-primary-foreground/70" : "text-muted-foreground"
+          )}>
+            {suffix}
+          </span>
+        )}
       </motion.p>
     </motion.div>
   );

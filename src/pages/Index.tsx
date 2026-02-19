@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Workout, UserProfile } from "@/types/workout";
 import { StatsCard } from "@/components/StatsCard";
@@ -25,10 +25,16 @@ import {
   LogIn,
   LogOut,
   Trophy,
-  MessageSquare
+  MessageSquare,
+  Home,
+  Bell,
+  ChevronRight,
+  Zap,
+  Activity,
+  Droplets,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { RankBadge, RankTierList } from "@/components/RankBadge";
+import { RankBadge } from "@/components/RankBadge";
 import { WaterTracker } from "@/components/WaterTracker";
 import { FoodScanner } from "@/components/FoodScanner";
 
@@ -47,10 +53,8 @@ const loadWorkouts = (): Workout[] => {
 
 const calculateStreak = (workouts: Workout[]): number => {
   if (workouts.length === 0) return 0;
-  
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  
   const uniqueDays = new Set(
     workouts.map(w => {
       const d = new Date(w.date);
@@ -58,26 +62,32 @@ const calculateStreak = (workouts: Workout[]): number => {
       return d.getTime();
     })
   );
-  
   let streak = 0;
   let checkDate = new Date(today);
-  
   if (!uniqueDays.has(checkDate.getTime())) {
     checkDate.setDate(checkDate.getDate() - 1);
   }
-  
   while (uniqueDays.has(checkDate.getTime())) {
     streak++;
     checkDate.setDate(checkDate.getDate() - 1);
   }
-  
   return streak;
 };
+
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good Morning';
+  if (hour < 17) return 'Good Afternoon';
+  return 'Good Evening';
+};
+
+type ActiveTab = 'home' | 'workouts' | 'nutrition' | 'community' | 'messages';
 
 const Index = () => {
   const [workouts, setWorkouts] = useState<Workout[]>(loadWorkouts);
   const [showForm, setShowForm] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [activeTab, setActiveTab] = useState<ActiveTab>('home');
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -91,7 +101,7 @@ const Index = () => {
     streak: calculateStreak(workouts),
     totalWorkouts: workouts.length,
     totalMinutes: workouts.reduce((acc, w) => acc + w.duration, 0),
-  }), [workouts]);
+  }), [workouts, user]);
 
   const { messages, sendMessage, isLoading } = useChat(profile, workouts);
 
@@ -113,174 +123,156 @@ const Index = () => {
     });
   };
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
-  };
-
   const statsData = [
-    { icon: Flame, label: "Day Streak", value: profile.streak, suffix: "days", variant: 'primary' as const },
+    { icon: Flame, label: "Streak", value: profile.streak, suffix: "d", variant: 'primary' as const },
     { icon: Target, label: "Workouts", value: profile.totalWorkouts },
-    { icon: Timer, label: "Total Time", value: profile.totalMinutes, suffix: "min" },
-    { icon: TrendingUp, label: "Calories", value: totalCalories, suffix: "kcal" },
+    { icon: Timer, label: "Minutes", value: profile.totalMinutes },
+    { icon: TrendingUp, label: "Calories", value: totalCalories },
+  ];
+
+  const quickActions = [
+    { icon: Dumbbell, label: "30-Day Plan", to: "/workout-planner", color: "text-primary bg-primary/10" },
+    { icon: Utensils, label: "Diet Plan", to: "/diet-plan", color: "text-orange-400 bg-orange-400/10" },
+    { icon: Users, label: "Community", to: "/community", color: "text-blue-400 bg-blue-400/10" },
+    { icon: Trophy, label: "Rankings", to: "/community", color: "text-yellow-400 bg-yellow-400/10" },
   ];
 
   return (
-    <div className="min-h-screen gradient-warm overflow-y-auto">
-      {/* Header */}
-      <motion.header 
-        className="px-4 pt-6 pb-4 max-w-7xl mx-auto"
-        initial={{ opacity: 0, y: -20 }}
+    <div className="min-h-screen bg-background overflow-y-auto">
+      {/* Top Header */}
+      <motion.header
+        className="sticky top-0 z-30 px-4 pt-5 pb-3 bg-background/80 backdrop-blur-xl border-b border-border/30"
+        initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+        transition={{ duration: 0.4 }}
       >
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-          <motion.div 
-            className="flex items-center gap-3"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1, duration: 0.4 }}
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          {/* Logo */}
+          <motion.div
+            className="flex items-center gap-2.5"
+            whileHover={{ scale: 1.02 }}
           >
-            <motion.div 
-              className="w-12 h-12 rounded-2xl gradient-primary flex items-center justify-center shadow-soft"
-              whileHover={{ rotate: [0, -10, 10, 0], scale: 1.05 }}
-              transition={{ duration: 0.4 }}
-            >
-              <Dumbbell className="w-6 h-6 text-primary-foreground" />
-            </motion.div>
+            <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shadow-soft">
+              <Dumbbell className="w-5 h-5 text-primary-foreground" />
+            </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">FitBuddy</h1>
-              <p className="text-sm text-muted-foreground">Your AI Coach</p>
+              <span className="text-lg font-black text-foreground tracking-tight">FitBuddy</span>
+              <span className="text-primary text-lg font-black">.</span>
             </div>
           </motion.div>
-          <motion.div 
-            className="flex items-center gap-2 w-full sm:w-auto flex-wrap"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2, duration: 0.4 }}
-          >
+
+          {/* Right actions */}
+          <div className="flex items-center gap-2">
             {user ? (
               <>
+                <motion.button
+                  onClick={() => setShowChat(true)}
+                  className="relative w-9 h-9 rounded-xl bg-secondary flex items-center justify-center"
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.92 }}
+                >
+                  <Bell className="w-4 h-4 text-muted-foreground" />
+                  <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-primary" />
+                </motion.button>
                 <Link to="/profile">
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Button variant="outline" size="lg" className="shadow-card">
-                      <User className="w-5 h-5" />
-                      <span className="hidden sm:inline">Profile</span>
-                    </Button>
+                  <motion.div
+                    className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shadow-soft"
+                    whileHover={{ scale: 1.08 }}
+                    whileTap={{ scale: 0.92 }}
+                  >
+                    <User className="w-4 h-4 text-primary-foreground" />
                   </motion.div>
                 </Link>
-                <Link to="/community">
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Button variant="outline" size="lg" className="shadow-card">
-                      <Users className="w-5 h-5" />
-                      <span className="hidden sm:inline">Community</span>
-                    </Button>
-                  </motion.div>
-                </Link>
-                <Link to="/messages">
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Button variant="outline" size="lg" className="shadow-card">
-                      <MessageSquare className="w-5 h-5" />
-                      <span className="hidden sm:inline">Messages</span>
-                    </Button>
-                  </motion.div>
-                </Link>
+                <motion.button
+                  onClick={signOut}
+                  className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center"
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.92 }}
+                >
+                  <LogOut className="w-4 h-4 text-muted-foreground" />
+                </motion.button>
               </>
             ) : (
               <Link to="/auth">
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Button variant="outline" size="lg" className="shadow-card">
-                    <LogIn className="w-5 h-5" />
-                    <span className="hidden sm:inline">Sign In</span>
-                  </Button>
-                </motion.div>
+                <Button variant="gradient" size="sm" className="shadow-soft">
+                  <LogIn className="w-4 h-4" />
+                  Sign In
+                </Button>
               </Link>
             )}
-            <Link to="/workout-planner" className="flex-1 sm:flex-initial">
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Button variant="outline" size="lg" className="shadow-card w-full sm:w-auto">
-                  <Target className="w-5 h-5" />
-                  <span className="hidden sm:inline">30-Day Plan</span>
-                  <span className="sm:hidden">Plan</span>
-                </Button>
-              </motion.div>
-            </Link>
-            <Link to="/diet-plan" className="flex-1 sm:flex-initial">
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Button variant="outline" size="lg" className="shadow-card w-full sm:w-auto">
-                  <Utensils className="w-5 h-5" />
-                  <span className="hidden sm:inline">Diet Plan</span>
-                  <span className="sm:hidden">Diet</span>
-                </Button>
-              </motion.div>
-            </Link>
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1 sm:flex-initial">
-              <Button 
-                variant="gradient" 
-                size="lg"
-                onClick={() => setShowForm(true)}
-                className="shadow-soft w-full"
-              >
-                <Plus className="w-5 h-5" />
-                <span className="hidden sm:inline">Log Workout</span>
-                <span className="sm:hidden">Log</span>
-              </Button>
-            </motion.div>
-            {user && (
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Button variant="ghost" size="lg" onClick={signOut}>
-                  <LogOut className="w-5 h-5" />
-                </Button>
-              </motion.div>
-            )}
-          </motion.div>
-        </div>
-
-        {/* Greeting */}
-        <motion.div 
-          className="bg-card rounded-3xl p-6 shadow-card mb-6 border border-border/50"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.4 }}
-          whileHover={{ scale: 1.01 }}
-        >
-          <div className="flex items-center gap-5">
-            <RankBadge
-              totalWorkouts={profile.totalWorkouts}
-              totalMinutes={profile.totalMinutes}
-              streak={profile.streak}
-              showProgress={true}
-              size="md"
-            />
-            <div className="flex-1 min-w-0">
-              <h2 className="text-xl font-semibold text-foreground mb-1">
-                {getGreeting()}, {profile.name}! 👋
-              </h2>
-              <p className="text-muted-foreground text-sm">
-                {profile.streak > 0 
-                  ? `You're on a ${profile.streak}-day streak! Keep the momentum going.`
-                  : "Ready to start your fitness journey today?"
-                }
-              </p>
-            </div>
           </div>
-        </motion.div>
+        </div>
       </motion.header>
 
       {/* Main Content */}
-      <main className="px-4 pb-28 max-w-7xl mx-auto">
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Left Column - Stats & Workouts */}
+      <main className="max-w-7xl mx-auto px-4 pb-28">
+        <div className="lg:grid lg:grid-cols-3 lg:gap-6">
+          {/* Left / Main Column */}
           <div className="lg:col-span-2 space-y-6">
+
+            {/* Hero Banner */}
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1, duration: 0.5 }}
+              className="mt-6"
+            >
+              <div className="relative overflow-hidden rounded-3xl gradient-primary p-6 min-h-[180px] shadow-soft">
+                {/* Decorative circles */}
+                <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-black/10" />
+                <div className="absolute -bottom-6 -right-4 w-28 h-28 rounded-full bg-black/15" />
+                <div className="absolute top-4 right-20 w-16 h-16 rounded-full bg-white/5" />
+                
+                <div className="relative z-10 flex items-end justify-between h-full">
+                  <div className="flex-1">
+                    <p className="text-primary-foreground/70 text-sm font-semibold uppercase tracking-widest mb-1">
+                      {getGreeting()} 👋
+                    </p>
+                    <h1 className="text-3xl font-black text-primary-foreground leading-tight mb-1">
+                      {profile.name}
+                    </h1>
+                    <p className="text-primary-foreground/80 text-sm font-medium mb-4">
+                      {profile.streak > 0 
+                        ? `🔥 ${profile.streak}-day streak — You're on fire!`
+                        : "Ready to crush your goals today?"
+                      }
+                    </p>
+                    <motion.button
+                      onClick={() => setShowForm(true)}
+                      className="inline-flex items-center gap-2 bg-black/25 hover:bg-black/35 text-primary-foreground font-bold text-sm px-4 py-2.5 rounded-xl transition-colors backdrop-blur-sm"
+                      whileHover={{ scale: 1.04 }}
+                      whileTap={{ scale: 0.96 }}
+                    >
+                      <Plus className="w-4 h-4" />
+                      Log Workout
+                    </motion.button>
+                  </div>
+
+                  {/* Rank badge area */}
+                  <motion.div
+                    className="flex-shrink-0 ml-4"
+                    animate={{ y: [0, -6, 0] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    <RankBadge
+                      totalWorkouts={profile.totalWorkouts}
+                      totalMinutes={profile.totalMinutes}
+                      streak={profile.streak}
+                      showProgress={false}
+                      size="md"
+                    />
+                  </motion.div>
+                </div>
+              </div>
+            </motion.section>
+
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {statsData.map((stat, index) => (
-                <StatsCard 
+                <StatsCard
                   key={stat.label}
-                  icon={stat.icon} 
-                  label={stat.label} 
+                  icon={stat.icon}
+                  label={stat.label}
                   value={stat.value}
                   suffix={stat.suffix}
                   variant={stat.variant}
@@ -289,85 +281,151 @@ const Index = () => {
               ))}
             </div>
 
-            {/* Rank Tiers */}
+            {/* Quick Actions */}
             <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-base font-bold text-foreground">Quick Actions</h2>
+              </div>
+              <div className="grid grid-cols-4 gap-3">
+                {quickActions.map((action, i) => (
+                  <motion.div
+                    key={action.label}
+                    initial={{ opacity: 0, scale: 0.85 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.25 + i * 0.06 }}
+                    whileHover={{ y: -3, scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Link to={action.to}>
+                      <div className="flex flex-col items-center gap-2 p-3 bg-card rounded-2xl border border-border/40 hover:border-primary/30 hover:shadow-glow-sm transition-all duration-200 cursor-pointer text-center">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${action.color}`}>
+                          <action.icon className="w-5 h-5" />
+                        </div>
+                        <span className="text-[11px] font-semibold text-muted-foreground leading-tight">{action.label}</span>
+                      </div>
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.section>
+
+            {/* Activity Cards - 2 col */}
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Weekly Progress mini card */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35 }}
+                className="bg-card rounded-2xl p-4 border border-border/40 shadow-card"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-primary" />
+                    <h3 className="text-sm font-bold text-foreground">Activity</h3>
+                  </div>
+                  <span className="text-xs text-muted-foreground">This week</span>
+                </div>
+                {/* Mini bar chart */}
+                <div className="flex items-end gap-1.5 h-12">
+                  {['M','T','W','T','F','S','S'].map((day, i) => {
+                    const hasWorkout = workouts.some(w => {
+                      const d = new Date(w.date);
+                      const dayOfWeek = d.getDay();
+                      return dayOfWeek === (i + 1) % 7;
+                    });
+                    const height = hasWorkout ? 100 : Math.random() * 40 + 15;
+                    return (
+                      <div key={day} className="flex-1 flex flex-col items-center gap-1">
+                        <motion.div
+                          className={`w-full rounded-sm ${hasWorkout ? 'gradient-primary' : 'bg-secondary'}`}
+                          initial={{ height: 0 }}
+                          animate={{ height: `${height}%` }}
+                          transition={{ delay: 0.4 + i * 0.04, duration: 0.5 }}
+                        />
+                        <span className="text-[9px] text-muted-foreground font-medium">{day}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+
+              {/* Water Tracker compact */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <WaterTracker />
+              </motion.div>
+            </div>
+
+            {/* Progress Charts */}
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.45 }}
             >
-              <div className="flex items-center gap-2 mb-3">
-                <Trophy className="w-5 h-5 text-primary" />
-                <h2 className="text-lg font-semibold text-foreground">Rank Tiers</h2>
-              </div>
-              <RankTierList />
-            </motion.section>
+              <ProgressCharts workouts={workouts} />
+            </motion.div>
 
-            {/* Progress Charts */}
-            <ProgressCharts workouts={workouts} />
-
-            {/* Water Tracker & Food Scanner */}
-            <div className="grid md:grid-cols-2 gap-4">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-              >
-                <WaterTracker />
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.55 }}
-              >
-                <FoodScanner />
-              </motion.div>
-            </div>
+            {/* Food Scanner */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <FoodScanner />
+            </motion.div>
 
             {/* Recent Workouts */}
-            <motion.section 
+            <motion.section
               className="w-full"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
+              transition={{ delay: 0.55 }}
             >
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-foreground">Recent Workouts</h2>
-                <span className="text-sm text-muted-foreground">
-                  {workouts.length} total
-                </span>
+                <h2 className="text-base font-bold text-foreground">Recent Workouts</h2>
+                <button className="flex items-center gap-1 text-xs text-primary font-semibold">
+                  See all <ChevronRight className="w-3 h-3" />
+                </button>
               </div>
               
               <AnimatePresence mode="popLayout">
                 {workouts.length > 0 ? (
                   <motion.div className="flex flex-col gap-3 w-full">
                     {workouts.slice(0, 5).map((workout, index) => (
-                      <WorkoutCard 
-                        key={workout.id} 
-                        workout={workout} 
+                      <WorkoutCard
+                        key={workout.id}
+                        workout={workout}
                         index={index}
                       />
                     ))}
                   </motion.div>
                 ) : (
-                  <motion.div 
-                    className="bg-card rounded-2xl p-8 text-center shadow-card border border-border/50 w-full"
+                  <motion.div
+                    className="relative overflow-hidden bg-card rounded-3xl p-8 text-center border border-border/40 w-full"
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.3 }}
                   >
-                    <motion.div 
-                      className="w-16 h-16 mx-auto mb-4 rounded-full gradient-primary flex items-center justify-center shadow-soft"
-                      animate={{ y: [0, -5, 0] }}
-                      transition={{ duration: 2, repeat: Infinity }}
+                    <div className="absolute inset-0 animate-shimmer pointer-events-none" />
+                    <motion.div
+                      className="w-16 h-16 mx-auto mb-4 rounded-2xl gradient-primary flex items-center justify-center shadow-soft"
+                      animate={{ y: [0, -6, 0] }}
+                      transition={{ duration: 2.5, repeat: Infinity }}
                     >
                       <Dumbbell className="w-8 h-8 text-primary-foreground" />
                     </motion.div>
-                    <h3 className="font-semibold text-foreground mb-2">No workouts yet</h3>
-                    <p className="text-muted-foreground text-sm mb-4">
+                    <h3 className="font-black text-foreground mb-2">No workouts yet</h3>
+                    <p className="text-muted-foreground text-sm mb-5">
                       Log your first workout to start tracking your progress!
                     </p>
-                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                      <Button variant="gradient" onClick={() => setShowForm(true)}>
+                    <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
+                      <Button variant="gradient" onClick={() => setShowForm(true)} className="shadow-soft">
                         <Plus className="w-4 h-4" />
                         Log First Workout
                       </Button>
@@ -378,16 +436,16 @@ const Index = () => {
             </motion.section>
           </div>
 
-          {/* Right Column - Chat */}
-          <motion.div 
+          {/* Right Column - AI Chat (desktop only) */}
+          <motion.div
             className="hidden lg:block"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4, duration: 0.4 }}
+            transition={{ delay: 0.4 }}
           >
-            <div className="sticky top-6 h-[calc(100vh-6rem)] min-h-[500px]">
-              <ChatInterface 
-                messages={messages} 
+            <div className="sticky top-20 h-[calc(100vh-6rem)] min-h-[500px]">
+              <ChatInterface
+                messages={messages}
                 onSendMessage={sendMessage}
                 isLoading={isLoading}
               />
@@ -396,50 +454,102 @@ const Index = () => {
         </div>
       </main>
 
-      {/* Mobile Chat FAB */}
+      {/* Bottom Navigation Bar (mobile) */}
+      <motion.nav
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-xl border-t border-border/50"
+        initial={{ y: 100 }}
+        animate={{ y: 0 }}
+        transition={{ delay: 0.6, type: "spring", stiffness: 200, damping: 25 }}
+      >
+        <div className="flex items-center justify-around px-2 py-2 safe-area-bottom">
+          {/* Home */}
+          <NavTabButton
+            icon={Home}
+            label="Home"
+            active={activeTab === 'home'}
+            onClick={() => setActiveTab('home')}
+          />
+          {/* Workouts */}
+          <NavTabButton
+            icon={Dumbbell}
+            label="Workout"
+            active={activeTab === 'workouts'}
+            onClick={() => navigate('/workout-planner')}
+          />
+          {/* Log (center FAB) */}
+          <motion.button
+            onClick={() => setShowForm(true)}
+            className="relative -mt-5 w-14 h-14 rounded-2xl gradient-primary shadow-glow flex items-center justify-center"
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            whileTap={{ scale: 0.92 }}
+          >
+            <Plus className="w-7 h-7 text-primary-foreground" strokeWidth={3} />
+          </motion.button>
+          {/* Community */}
+          <NavTabButton
+            icon={Users}
+            label="Community"
+            active={activeTab === 'community'}
+            onClick={() => navigate('/community')}
+          />
+          {/* Messages */}
+          <NavTabButton
+            icon={MessageSquare}
+            label="Messages"
+            active={activeTab === 'messages'}
+            onClick={() => navigate('/messages')}
+          />
+        </div>
+      </motion.nav>
+
+      {/* Mobile Chat FAB (hidden on mobile since we have bottom nav) */}
       <motion.button
         onClick={() => setShowChat(true)}
-        className="lg:hidden fixed bottom-6 right-6 w-14 h-14 rounded-full gradient-primary shadow-glow flex items-center justify-center z-40"
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ delay: 0.6, type: "spring", stiffness: 200 }}
+        className="lg:hidden fixed bottom-24 right-5 w-12 h-12 rounded-2xl gradient-primary shadow-glow flex items-center justify-center z-40"
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.8, type: "spring", stiffness: 200 }}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
       >
-        <MessageCircle className="w-6 h-6 text-primary-foreground" />
+        <MessageCircle className="w-5 h-5 text-primary-foreground" />
       </motion.button>
 
       {/* Mobile Chat Modal */}
       <AnimatePresence>
         {showChat && (
-          <motion.div 
+          <motion.div
             className="lg:hidden fixed inset-0 z-50 bg-background"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
           >
-            <motion.div 
+            <motion.div
               className="h-[100dvh] flex flex-col overflow-hidden"
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
             >
-              <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
-                <h2 className="text-lg font-semibold text-foreground">Chat with FitBuddy</h2>
-                <motion.button 
+              <div className="flex items-center justify-between p-4 border-b border-border/50 flex-shrink-0">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl gradient-primary flex items-center justify-center">
+                    <Zap className="w-4 h-4 text-primary-foreground" />
+                  </div>
+                  <h2 className="text-base font-bold text-foreground">AI Fitness Coach</h2>
+                </div>
+                <motion.button
                   onClick={() => setShowChat(false)}
-                  className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center"
+                  className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center"
                   whileHover={{ scale: 1.1, rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
                 >
-                  <X className="w-5 h-5 text-muted-foreground" />
+                  <X className="w-4 h-4 text-muted-foreground" />
                 </motion.button>
               </div>
               <div className="flex-1 min-h-0 overflow-hidden">
-                <ChatInterface 
-                  messages={messages} 
+                <ChatInterface
+                  messages={messages}
                   onSendMessage={sendMessage}
                   isLoading={isLoading}
                 />
@@ -452,14 +562,52 @@ const Index = () => {
       {/* Workout Form Modal */}
       <AnimatePresence>
         {showForm && (
-          <WorkoutForm 
-            onSubmit={handleAddWorkout} 
-            onClose={() => setShowForm(false)} 
+          <WorkoutForm
+            onSubmit={handleAddWorkout}
+            onClose={() => setShowForm(false)}
           />
         )}
       </AnimatePresence>
     </div>
   );
 };
+
+// Bottom nav button helper
+function NavTabButton({
+  icon: Icon,
+  label,
+  active,
+  onClick,
+}: {
+  icon: React.ElementType;
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <motion.button
+      onClick={onClick}
+      className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-colors"
+      whileTap={{ scale: 0.9 }}
+    >
+      <motion.div
+        animate={active ? { scale: 1.15 } : { scale: 1 }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      >
+        <Icon className={`w-5 h-5 transition-colors ${active ? 'text-primary' : 'text-muted-foreground'}`} />
+      </motion.div>
+      <span className={`text-[10px] font-semibold transition-colors ${active ? 'text-primary' : 'text-muted-foreground'}`}>
+        {label}
+      </span>
+      {active && (
+        <motion.div
+          layoutId="nav-indicator"
+          className="w-4 h-0.5 rounded-full bg-primary mt-0.5"
+          transition={{ type: "spring", stiffness: 400, damping: 30 }}
+        />
+      )}
+    </motion.button>
+  );
+}
 
 export default Index;
