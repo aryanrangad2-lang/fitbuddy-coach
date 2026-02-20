@@ -1,5 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import heroBodybuilder from "@/assets/hero-bodybuilder.jpg";
+import workoutAction from "@/assets/workout-action.jpg";
 import { Workout, UserProfile } from "@/types/workout";
 import { StatsCard } from "@/components/StatsCard";
 import { WorkoutCard } from "@/components/WorkoutCard";
@@ -218,11 +220,11 @@ const Index = () => {
               transition={{ delay: 0.1, duration: 0.5 }}
               className="mt-6"
             >
-              <div className="relative overflow-hidden rounded-3xl gradient-primary p-6 min-h-[180px] shadow-soft">
-                {/* Decorative circles */}
-                <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-black/10" />
-                <div className="absolute -bottom-6 -right-4 w-28 h-28 rounded-full bg-black/15" />
-                <div className="absolute top-4 right-20 w-16 h-16 rounded-full bg-white/5" />
+              <div className="relative overflow-hidden rounded-3xl p-6 min-h-[200px] shadow-soft">
+                {/* Background image */}
+                <img src={heroBodybuilder} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                 
                 <div className="relative z-10 flex items-end justify-between h-full">
                   <div className="flex-1">
@@ -413,24 +415,27 @@ const Index = () => {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                   >
-                    <div className="absolute inset-0 animate-shimmer pointer-events-none" />
-                    <motion.div
-                      className="w-16 h-16 mx-auto mb-4 rounded-2xl gradient-primary flex items-center justify-center shadow-soft"
-                      animate={{ y: [0, -6, 0] }}
-                      transition={{ duration: 2.5, repeat: Infinity }}
-                    >
-                      <Dumbbell className="w-8 h-8 text-primary-foreground" />
-                    </motion.div>
-                    <h3 className="font-black text-foreground mb-2">No workouts yet</h3>
-                    <p className="text-muted-foreground text-sm mb-5">
-                      Log your first workout to start tracking your progress!
-                    </p>
-                    <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
-                      <Button variant="gradient" onClick={() => setShowForm(true)} className="shadow-soft">
-                        <Plus className="w-4 h-4" />
-                        Log First Workout
-                      </Button>
-                    </motion.div>
+                    <img src={workoutAction} alt="" className="absolute inset-0 w-full h-full object-cover opacity-15" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-card via-card/80 to-card/40" />
+                    <div className="relative z-10">
+                      <motion.div
+                        className="w-16 h-16 mx-auto mb-4 rounded-2xl gradient-primary flex items-center justify-center shadow-soft"
+                        animate={{ y: [0, -6, 0] }}
+                        transition={{ duration: 2.5, repeat: Infinity }}
+                      >
+                        <Dumbbell className="w-8 h-8 text-primary-foreground" />
+                      </motion.div>
+                      <h3 className="font-black text-foreground mb-2">No workouts yet</h3>
+                      <p className="text-muted-foreground text-sm mb-5">
+                        Log your first workout to start tracking your progress!
+                      </p>
+                      <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
+                        <Button variant="gradient" onClick={() => setShowForm(true)} className="shadow-soft">
+                          <Plus className="w-4 h-4" />
+                          Log First Workout
+                        </Button>
+                      </motion.div>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
