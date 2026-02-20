@@ -477,14 +477,14 @@ const Index = () => {
             active={activeTab === 'workouts'}
             onClick={() => navigate('/workout-planner')}
           />
-          {/* Log (center FAB) */}
+          {/* LooksMaxx (center FAB) */}
           <motion.button
-            onClick={() => setShowForm(true)}
-            className="relative -mt-5 w-14 h-14 rounded-2xl gradient-primary shadow-glow flex items-center justify-center"
+            onClick={() => navigate('/lookmaxx')}
+            className="relative -mt-5 w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-glow flex items-center justify-center"
             whileHover={{ scale: 1.1, rotate: 5 }}
             whileTap={{ scale: 0.92 }}
           >
-            <Plus className="w-7 h-7 text-primary-foreground" strokeWidth={3} />
+            <Sparkles className="w-7 h-7 text-white" strokeWidth={2.5} />
           </motion.button>
           {/* Community */}
           <NavTabButton
