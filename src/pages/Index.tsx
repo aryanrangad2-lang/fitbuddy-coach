@@ -32,6 +32,7 @@ import {
   Zap,
   Activity,
   Droplets,
+  Sparkles,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { RankBadge } from "@/components/RankBadge";
@@ -134,7 +135,7 @@ const Index = () => {
     { icon: Dumbbell, label: "30-Day Plan", to: "/workout-planner", color: "text-primary bg-primary/10" },
     { icon: Utensils, label: "Diet Plan", to: "/diet-plan", color: "text-orange-400 bg-orange-400/10" },
     { icon: Users, label: "Community", to: "/community", color: "text-blue-400 bg-blue-400/10" },
-    { icon: Trophy, label: "Rankings", to: "/community", color: "text-yellow-400 bg-yellow-400/10" },
+    { icon: Sparkles, label: "LooksMaxx", to: "/lookmaxx", color: "text-purple-400 bg-purple-400/10" },
   ];
 
   return (

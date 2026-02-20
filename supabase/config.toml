@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.food-scanner]
 verify_jwt = false
+
+[functions.lookmaxx-analysis]
+verify_jwt = false
