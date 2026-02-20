@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import lookmaxxPhysique from "@/assets/lookmaxx-physique.jpg";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -177,21 +178,22 @@ export default function LooksMaxx() {
               className="space-y-6"
             >
               {/* Hero */}
-              <div className="relative overflow-hidden rounded-3xl gradient-primary p-6 shadow-soft">
-                <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-black/10" />
-                <div className="absolute -bottom-6 -right-4 w-28 h-28 rounded-full bg-black/15" />
+              <div className="relative overflow-hidden rounded-3xl p-6 shadow-soft min-h-[160px]">
+                <img src={lookmaxxPhysique} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/50 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                 <div className="relative z-10">
                   <motion.div
                     animate={{ rotate: [0, 5, -5, 0] }}
                     transition={{ duration: 3, repeat: Infinity }}
                     className="inline-block mb-3"
                   >
-                    <Sparkles className="w-8 h-8 text-primary-foreground" />
+                    <Sparkles className="w-8 h-8 text-white" />
                   </motion.div>
-                  <h2 className="text-2xl font-black text-primary-foreground mb-1">
+                  <h2 className="text-2xl font-black text-white mb-1">
                     Unlock Your Best Look
                   </h2>
-                  <p className="text-primary-foreground/80 text-sm">
+                  <p className="text-white/80 text-sm">
                     Upload a clear face photo and our AI will analyze your facial features, rate your aesthetics, and give personalized lookmaxxing tips.
                   </p>
                 </div>

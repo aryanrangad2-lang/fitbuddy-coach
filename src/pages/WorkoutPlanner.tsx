@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import workoutDeadlift from '@/assets/workout-deadlift.jpg';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { 
@@ -165,9 +166,26 @@ const WorkoutPlanner = () => {
               </Button>
             </motion.div>
           </Link>
-          <div>
+          <div className="flex-1">
             <h1 className="text-2xl font-bold text-foreground">30-Day Workout Program</h1>
             <p className="text-muted-foreground text-sm">Transform your body in 30 days</p>
+          </div>
+        </motion.div>
+
+        {/* Motivational Banner */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="relative overflow-hidden rounded-2xl mb-6 h-36"
+        >
+          <img src={workoutDeadlift} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
+          <div className="relative z-10 flex items-center h-full px-5">
+            <div>
+              <p className="text-white/70 text-xs font-bold uppercase tracking-widest mb-1">Push Your Limits</p>
+              <h2 className="text-white text-xl font-black leading-tight">No Excuses,<br/>Just Results 💪</h2>
+            </div>
           </div>
         </motion.div>
 
