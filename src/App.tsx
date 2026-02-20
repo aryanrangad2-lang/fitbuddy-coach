@@ -12,6 +12,7 @@ import Profile from "./pages/Profile";
 import Community from "./pages/Community";
 import Messages from "./pages/Messages";
 import NotFound from "./pages/NotFound";
+import LooksMaxx from "./pages/LooksMaxx";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/messages" element={<Messages />} />
             <Route path="/diet-plan" element={<DietPlan />} />
             <Route path="/workout-planner" element={<WorkoutPlanner />} />
+            <Route path="/lookmaxx" element={<LooksMaxx />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
