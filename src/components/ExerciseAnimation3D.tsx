@@ -1,7 +1,22 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Pause, Volume2, VolumeX, Info } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
+
+// Import all exercise images for offline use
+import benchPressImg from '@/assets/exercises/bench-press.png';
+import pushupImg from '@/assets/exercises/pushup.png';
+import crunchImg from '@/assets/exercises/crunch.png';
+import squatImg from '@/assets/exercises/squat.png';
+import deadliftImg from '@/assets/exercises/deadlift.png';
+import plankImg from '@/assets/exercises/plank.png';
+import lungeImg from '@/assets/exercises/lunge.png';
+import dipsImg from '@/assets/exercises/dips.png';
+import burpeeImg from '@/assets/exercises/burpee.png';
+import runningImg from '@/assets/exercises/running.png';
+import bridgeImg from '@/assets/exercises/bridge.png';
+import mountainClimberImg from '@/assets/exercises/mountain-climber.png';
+import stretchImg from '@/assets/exercises/stretch.png';
+import jumpingImg from '@/assets/exercises/jumping.png';
 
 interface MuscleGroup {
   name: string;
@@ -9,147 +24,140 @@ interface MuscleGroup {
 }
 
 interface ExerciseData {
-  emoji: string[];
+  image: string;
   primaryMuscles: MuscleGroup[];
   secondaryMuscles: MuscleGroup[];
-  bodyRegion: 'upper' | 'lower' | 'core' | 'full' | 'rest';
-  movementType: 'push' | 'pull' | 'squat' | 'hinge' | 'carry' | 'rotate' | 'run' | 'rest';
   gradientFrom: string;
   gradientTo: string;
 }
 
-const muscleDatabase: Record<string, ExerciseData> = {
+const exerciseImageMap: Record<string, ExerciseData> = {
   'push': {
-    emoji: ['🫃', '💪', '🧎'],
+    image: pushupImg,
     primaryMuscles: [{ name: 'Chest', color: '#22c55e' }, { name: 'Triceps', color: '#22c55e' }],
     secondaryMuscles: [{ name: 'Shoulders', color: '#86efac' }, { name: 'Core', color: '#86efac' }],
-    bodyRegion: 'upper', movementType: 'push',
-    gradientFrom: 'hsl(150 80% 40%)', gradientTo: 'hsl(170 75% 35%)',
+    gradientFrom: '#22c55e', gradientTo: '#16a34a',
+  },
+  'bench': {
+    image: benchPressImg,
+    primaryMuscles: [{ name: 'Chest', color: '#22c55e' }, { name: 'Triceps', color: '#22c55e' }],
+    secondaryMuscles: [{ name: 'Shoulders', color: '#86efac' }],
+    gradientFrom: '#22c55e', gradientTo: '#16a34a',
   },
   'squat': {
-    emoji: ['🧍', '🧎', '🧍'],
+    image: squatImg,
     primaryMuscles: [{ name: 'Quads', color: '#22c55e' }, { name: 'Glutes', color: '#22c55e' }],
     secondaryMuscles: [{ name: 'Hamstrings', color: '#86efac' }, { name: 'Core', color: '#86efac' }],
-    bodyRegion: 'lower', movementType: 'squat',
-    gradientFrom: 'hsl(262 83% 58%)', gradientTo: 'hsl(280 80% 50%)',
+    gradientFrom: '#a855f7', gradientTo: '#7c3aed',
   },
   'lunge': {
-    emoji: ['🧍', '🚶', '🧍'],
+    image: lungeImg,
     primaryMuscles: [{ name: 'Quads', color: '#22c55e' }, { name: 'Glutes', color: '#22c55e' }],
-    secondaryMuscles: [{ name: 'Hamstrings', color: '#86efac' }, { name: 'Balance', color: '#86efac' }],
-    bodyRegion: 'lower', movementType: 'squat',
-    gradientFrom: 'hsl(262 83% 58%)', gradientTo: 'hsl(280 80% 50%)',
+    secondaryMuscles: [{ name: 'Hamstrings', color: '#86efac' }],
+    gradientFrom: '#a855f7', gradientTo: '#7c3aed',
   },
   'plank': {
-    emoji: ['🫃', '🏋️', '🫃'],
+    image: plankImg,
     primaryMuscles: [{ name: 'Core', color: '#22c55e' }, { name: 'Abs', color: '#22c55e' }],
     secondaryMuscles: [{ name: 'Shoulders', color: '#86efac' }, { name: 'Back', color: '#86efac' }],
-    bodyRegion: 'core', movementType: 'carry',
-    gradientFrom: 'hsl(38 92% 50%)', gradientTo: 'hsl(20 90% 48%)',
+    gradientFrom: '#f59e0b', gradientTo: '#d97706',
   },
   'burpee': {
-    emoji: ['🧍', '🧎', '🫃', '🏃', '🧍'],
+    image: burpeeImg,
     primaryMuscles: [{ name: 'Full Body', color: '#22c55e' }],
     secondaryMuscles: [{ name: 'Cardio', color: '#86efac' }, { name: 'Core', color: '#86efac' }],
-    bodyRegion: 'full', movementType: 'run',
-    gradientFrom: 'hsl(0 72% 51%)', gradientTo: 'hsl(20 90% 48%)',
+    gradientFrom: '#ef4444', gradientTo: '#dc2626',
   },
   'dip': {
-    emoji: ['🧍', '🧎', '🧍'],
+    image: dipsImg,
     primaryMuscles: [{ name: 'Triceps', color: '#22c55e' }, { name: 'Chest', color: '#22c55e' }],
     secondaryMuscles: [{ name: 'Shoulders', color: '#86efac' }],
-    bodyRegion: 'upper', movementType: 'push',
-    gradientFrom: 'hsl(150 80% 40%)', gradientTo: 'hsl(170 75% 35%)',
+    gradientFrom: '#22c55e', gradientTo: '#16a34a',
   },
   'crunch': {
-    emoji: ['🫃', '🧎', '🫃'],
+    image: crunchImg,
     primaryMuscles: [{ name: 'Abs', color: '#22c55e' }, { name: 'Core', color: '#22c55e' }],
     secondaryMuscles: [{ name: 'Hip Flexors', color: '#86efac' }],
-    bodyRegion: 'core', movementType: 'rotate',
-    gradientFrom: 'hsl(270 76% 53%)', gradientTo: 'hsl(290 70% 48%)',
+    gradientFrom: '#a855f7', gradientTo: '#7c3aed',
   },
   'bridge': {
-    emoji: ['🫃', '🧎', '🫃'],
+    image: bridgeImg,
     primaryMuscles: [{ name: 'Glutes', color: '#22c55e' }, { name: 'Hamstrings', color: '#22c55e' }],
-    secondaryMuscles: [{ name: 'Core', color: '#86efac' }, { name: 'Back', color: '#86efac' }],
-    bodyRegion: 'lower', movementType: 'hinge',
-    gradientFrom: 'hsl(262 83% 58%)', gradientTo: 'hsl(280 80% 50%)',
+    secondaryMuscles: [{ name: 'Core', color: '#86efac' }],
+    gradientFrom: '#a855f7', gradientTo: '#7c3aed',
+  },
+  'dead': {
+    image: deadliftImg,
+    primaryMuscles: [{ name: 'Back', color: '#22c55e' }, { name: 'Hamstrings', color: '#22c55e' }],
+    secondaryMuscles: [{ name: 'Glutes', color: '#86efac' }, { name: 'Core', color: '#86efac' }],
+    gradientFrom: '#22c55e', gradientTo: '#16a34a',
   },
   'run': {
-    emoji: ['🏃', '🏃‍♂️', '🏃'],
+    image: runningImg,
     primaryMuscles: [{ name: 'Legs', color: '#22c55e' }, { name: 'Cardio', color: '#22c55e' }],
-    secondaryMuscles: [{ name: 'Core', color: '#86efac' }, { name: 'Arms', color: '#86efac' }],
-    bodyRegion: 'full', movementType: 'run',
-    gradientFrom: 'hsl(0 72% 51%)', gradientTo: 'hsl(0 85% 60%)',
+    secondaryMuscles: [{ name: 'Core', color: '#86efac' }],
+    gradientFrom: '#ef4444', gradientTo: '#dc2626',
   },
   'walk': {
-    emoji: ['🚶', '🚶‍♂️', '🚶'],
-    primaryMuscles: [{ name: 'Legs', color: '#22c55e' }, { name: 'Cardio', color: '#22c55e' }],
-    secondaryMuscles: [{ name: 'Core', color: '#86efac' }],
-    bodyRegion: 'full', movementType: 'run',
-    gradientFrom: 'hsl(200 80% 50%)', gradientTo: 'hsl(220 75% 45%)',
+    image: runningImg,
+    primaryMuscles: [{ name: 'Legs', color: '#22c55e' }],
+    secondaryMuscles: [{ name: 'Cardio', color: '#86efac' }],
+    gradientFrom: '#3b82f6', gradientTo: '#2563eb',
   },
   'jump': {
-    emoji: ['🧍', '🤸', '🧍'],
+    image: jumpingImg,
     primaryMuscles: [{ name: 'Legs', color: '#22c55e' }, { name: 'Calves', color: '#22c55e' }],
     secondaryMuscles: [{ name: 'Cardio', color: '#86efac' }],
-    bodyRegion: 'full', movementType: 'run',
-    gradientFrom: 'hsl(30 90% 55%)', gradientTo: 'hsl(38 92% 50%)',
+    gradientFrom: '#f59e0b', gradientTo: '#d97706',
   },
   'mountain': {
-    emoji: ['🫃', '🏃', '🫃'],
+    image: mountainClimberImg,
     primaryMuscles: [{ name: 'Core', color: '#22c55e' }, { name: 'Shoulders', color: '#22c55e' }],
     secondaryMuscles: [{ name: 'Legs', color: '#86efac' }, { name: 'Cardio', color: '#86efac' }],
-    bodyRegion: 'core', movementType: 'run',
-    gradientFrom: 'hsl(0 72% 51%)', gradientTo: 'hsl(20 90% 48%)',
+    gradientFrom: '#ef4444', gradientTo: '#dc2626',
   },
   'high': {
-    emoji: ['🏃', '🧍', '🏃'],
+    image: runningImg,
     primaryMuscles: [{ name: 'Hip Flexors', color: '#22c55e' }, { name: 'Quads', color: '#22c55e' }],
-    secondaryMuscles: [{ name: 'Cardio', color: '#86efac' }, { name: 'Core', color: '#86efac' }],
-    bodyRegion: 'lower', movementType: 'run',
-    gradientFrom: 'hsl(0 72% 51%)', gradientTo: 'hsl(0 85% 60%)',
+    secondaryMuscles: [{ name: 'Cardio', color: '#86efac' }],
+    gradientFrom: '#ef4444', gradientTo: '#dc2626',
   },
   'yoga': {
-    emoji: ['🧘', '🙆', '🧘'],
+    image: stretchImg,
     primaryMuscles: [{ name: 'Flexibility', color: '#22c55e' }],
-    secondaryMuscles: [{ name: 'Balance', color: '#86efac' }, { name: 'Core', color: '#86efac' }],
-    bodyRegion: 'full', movementType: 'rest',
-    gradientFrom: 'hsl(270 76% 53%)', gradientTo: 'hsl(300 70% 50%)',
+    secondaryMuscles: [{ name: 'Balance', color: '#86efac' }],
+    gradientFrom: '#a855f7', gradientTo: '#7c3aed',
   },
   'stretch': {
-    emoji: ['🙆', '🧘', '🙆'],
+    image: stretchImg,
     primaryMuscles: [{ name: 'Flexibility', color: '#22c55e' }],
     secondaryMuscles: [{ name: 'Recovery', color: '#86efac' }],
-    bodyRegion: 'full', movementType: 'rest',
-    gradientFrom: 'hsl(270 76% 53%)', gradientTo: 'hsl(300 70% 50%)',
+    gradientFrom: '#a855f7', gradientTo: '#7c3aed',
   },
   'rest': {
-    emoji: ['😴', '💤', '😴'],
+    image: stretchImg,
     primaryMuscles: [{ name: 'Recovery', color: '#60a5fa' }],
     secondaryMuscles: [{ name: 'Full Body', color: '#93c5fd' }],
-    bodyRegion: 'rest', movementType: 'rest',
-    gradientFrom: 'hsl(220 80% 60%)', gradientTo: 'hsl(240 75% 55%)',
+    gradientFrom: '#3b82f6', gradientTo: '#2563eb',
   },
   'default': {
-    emoji: ['🏋️', '💪', '🏋️'],
+    image: pushupImg,
     primaryMuscles: [{ name: 'Full Body', color: '#22c55e' }],
     secondaryMuscles: [{ name: 'Core', color: '#86efac' }],
-    bodyRegion: 'full', movementType: 'carry',
-    gradientFrom: 'hsl(150 80% 40%)', gradientTo: 'hsl(170 75% 35%)',
+    gradientFrom: '#22c55e', gradientTo: '#16a34a',
   },
 };
 
 function getExerciseData(name: string, type: string): ExerciseData {
   const lower = name.toLowerCase();
-  const keywords = Object.keys(muscleDatabase).filter(k => k !== 'default');
+  const keywords = Object.keys(exerciseImageMap).filter(k => k !== 'default');
   for (const key of keywords) {
-    if (lower.includes(key)) return muscleDatabase[key];
+    if (lower.includes(key)) return exerciseImageMap[key];
   }
-  if (type === 'rest') return muscleDatabase['rest'];
-  if (type === 'flexibility') return muscleDatabase['stretch'];
-  if (type === 'cardio') return muscleDatabase['run'];
-  return muscleDatabase['default'];
+  if (type === 'rest') return exerciseImageMap['rest'];
+  if (type === 'flexibility') return exerciseImageMap['stretch'];
+  if (type === 'cardio') return exerciseImageMap['run'];
+  return exerciseImageMap['default'];
 }
 
 function playExerciseSound(type: string) {
@@ -170,137 +178,6 @@ function playExerciseSound(type: string) {
   } catch {}
 }
 
-// 3D Human body SVG with highlighted muscle groups
-const BodySVG = ({ region, movementType, isPlaying }: { region: string; movementType: string; isPlaying: boolean }) => {
-  const headColor = 'hsl(var(--muted-foreground))';
-  const bodyColor = 'hsl(var(--muted))';
-  const activeColor = 'hsl(150 80% 50%)';
-  const secondaryColor = 'hsl(150 80% 70% / 0.6)';
-
-  const isUpper = region === 'upper' || region === 'full';
-  const isLower = region === 'lower' || region === 'full';
-  const isCore = region === 'core' || region === 'full';
-
-  return (
-    <svg viewBox="0 0 80 140" className="w-full h-full" style={{ filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.4))' }}>
-      {/* Head */}
-      <motion.ellipse cx="40" cy="14" rx="10" ry="12" fill={headColor} opacity="0.9"
-        animate={isPlaying ? { scaleY: [1, 0.95, 1] } : {}}
-        transition={{ duration: 0.8, repeat: Infinity }}
-      />
-      {/* Neck */}
-      <rect x="36" y="25" width="8" height="7" rx="2" fill={headColor} opacity="0.8" />
-
-      {/* Torso */}
-      <motion.rect x="24" y="31" width="32" height="38" rx="6"
-        fill={isCore ? activeColor : bodyColor} opacity={isCore ? 0.9 : 0.7}
-        animate={isPlaying && isCore ? { scaleX: [1, 1.05, 1], opacity: [0.9, 1, 0.9] } : {}}
-        transition={{ duration: 0.6, repeat: Infinity }}
-      />
-      {/* Chest detail */}
-      <motion.ellipse cx="33" cy="40" rx="6" ry="4"
-        fill={isUpper ? activeColor : 'transparent'} opacity={isUpper ? 0.7 : 0}
-        animate={isPlaying && isUpper ? { opacity: [0.7, 1, 0.7] } : {}}
-        transition={{ duration: 0.5, repeat: Infinity }}
-      />
-      <motion.ellipse cx="47" cy="40" rx="6" ry="4"
-        fill={isUpper ? activeColor : 'transparent'} opacity={isUpper ? 0.7 : 0}
-        animate={isPlaying && isUpper ? { opacity: [0.7, 1, 0.7] } : {}}
-        transition={{ duration: 0.5, repeat: Infinity }}
-      />
-      {/* Abs detail */}
-      {[0, 1, 2].map(i => (
-        <motion.rect key={i} x="33" y={44 + i * 8} width="14" height="5" rx="2"
-          fill={isCore ? secondaryColor : 'transparent'} opacity={isCore ? 0.8 : 0}
-          animate={isPlaying && isCore ? { opacity: [0.6, 1, 0.6] } : {}}
-          transition={{ duration: 0.7, delay: i * 0.1, repeat: Infinity }}
-        />
-      ))}
-
-      {/* Left Arm */}
-      <motion.g
-        animate={isPlaying && (isUpper || region === 'full') ? {
-          rotate: movementType === 'push' ? [-15, 15, -15] : movementType === 'run' ? [-25, 25, -25] : [-10, 10, -10]
-        } : {}}
-        style={{ originX: '22px', originY: '35px' }}
-        transition={{ duration: 0.6, repeat: Infinity, ease: 'easeInOut' }}
-      >
-        <rect x="13" y="32" width="11" height="24" rx="5"
-          fill={isUpper ? activeColor : bodyColor} opacity={isUpper ? 0.85 : 0.65} />
-        {/* Bicep highlight */}
-        <ellipse cx="18" cy="40" rx="4" ry="6" fill={isUpper ? secondaryColor : 'transparent'} opacity={isUpper ? 0.9 : 0} />
-        {/* Forearm */}
-        <rect x="10" y="55" width="10" height="20" rx="4"
-          fill={isUpper ? activeColor : bodyColor} opacity={isUpper ? 0.7 : 0.55} />
-      </motion.g>
-
-      {/* Right Arm */}
-      <motion.g
-        animate={isPlaying && (isUpper || region === 'full') ? {
-          rotate: movementType === 'push' ? [15, -15, 15] : movementType === 'run' ? [25, -25, 25] : [10, -10, 10]
-        } : {}}
-        style={{ originX: '58px', originY: '35px' }}
-        transition={{ duration: 0.6, repeat: Infinity, ease: 'easeInOut' }}
-      >
-        <rect x="56" y="32" width="11" height="24" rx="5"
-          fill={isUpper ? activeColor : bodyColor} opacity={isUpper ? 0.85 : 0.65} />
-        <ellipse cx="62" cy="40" rx="4" ry="6" fill={isUpper ? secondaryColor : 'transparent'} opacity={isUpper ? 0.9 : 0} />
-        <rect x="60" y="55" width="10" height="20" rx="4"
-          fill={isUpper ? activeColor : bodyColor} opacity={isUpper ? 0.7 : 0.55} />
-      </motion.g>
-
-      {/* Hips */}
-      <rect x="22" y="67" width="36" height="14" rx="5"
-        fill={isLower || isCore ? activeColor : bodyColor} opacity={isLower || isCore ? 0.8 : 0.65} />
-
-      {/* Left Leg */}
-      <motion.g
-        animate={isPlaying && isLower ? {
-          rotate: movementType === 'squat' ? [0, 30, 0] : movementType === 'run' ? [-20, 20, -20] : [-10, 10, -10]
-        } : {}}
-        style={{ originX: '30px', originY: '75px' }}
-        transition={{ duration: 0.6, repeat: Infinity, ease: 'easeInOut' }}
-      >
-        <rect x="24" y="79" width="13" height="32" rx="6"
-          fill={isLower ? activeColor : bodyColor} opacity={isLower ? 0.85 : 0.65} />
-        {/* Quad detail */}
-        <ellipse cx="30" cy="90" rx="5" ry="10" fill={isLower ? secondaryColor : 'transparent'} opacity={isLower ? 0.7 : 0} />
-        {/* Calf */}
-        <rect x="25" y="109" width="11" height="22" rx="5"
-          fill={isLower ? activeColor : bodyColor} opacity={isLower ? 0.75 : 0.55} />
-      </motion.g>
-
-      {/* Right Leg */}
-      <motion.g
-        animate={isPlaying && isLower ? {
-          rotate: movementType === 'squat' ? [0, 30, 0] : movementType === 'run' ? [20, -20, 20] : [10, -10, 10]
-        } : {}}
-        style={{ originX: '50px', originY: '75px' }}
-        transition={{ duration: 0.6, repeat: Infinity, ease: 'easeInOut' }}
-      >
-        <rect x="43" y="79" width="13" height="32" rx="6"
-          fill={isLower ? activeColor : bodyColor} opacity={isLower ? 0.85 : 0.65} />
-        <ellipse cx="50" cy="90" rx="5" ry="10" fill={isLower ? secondaryColor : 'transparent'} opacity={isLower ? 0.7 : 0} />
-        <rect x="44" y="109" width="11" height="22" rx="5"
-          fill={isLower ? activeColor : bodyColor} opacity={isLower ? 0.75 : 0.55} />
-      </motion.g>
-
-      {/* Feet */}
-      <ellipse cx="31" cy="133" rx="8" ry="4" fill={bodyColor} opacity="0.7" />
-      <ellipse cx="49" cy="133" rx="8" ry="4" fill={bodyColor} opacity="0.7" />
-
-      {/* Glow ring when playing */}
-      {isPlaying && (
-        <motion.ellipse cx="40" cy="70" rx="35" ry="60"
-          fill="none" stroke={activeColor} strokeWidth="2" opacity="0.3"
-          animate={{ scale: [1, 1.05, 1], opacity: [0.3, 0.6, 0.3] }}
-          transition={{ duration: 1, repeat: Infinity }}
-        />
-      )}
-    </svg>
-  );
-};
-
 interface ExerciseAnimation3DProps {
   exerciseName: string;
   type: 'strength' | 'cardio' | 'rest' | 'flexibility';
@@ -311,7 +188,6 @@ interface ExerciseAnimation3DProps {
 export function ExerciseAnimation3D({ exerciseName, type, expanded = false, className }: ExerciseAnimation3DProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [showInfo, setShowInfo] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
   const data = getExerciseData(exerciseName, type);
 
@@ -327,131 +203,169 @@ export function ExerciseAnimation3D({ exerciseName, type, expanded = false, clas
     setIsPlaying(!isPlaying);
   };
 
-  if (expanded) {
+  // Compact card view (thumbnail in exercise list)
+  if (!expanded) {
     return (
-      <div className={`${className || ''}`}>
-        <div className="flex gap-4 items-stretch">
-          {/* 3D Body Display */}
-          <div className="relative w-28 shrink-0">
-            <div
-              className="w-full h-48 rounded-2xl flex items-center justify-center p-2 relative overflow-hidden"
-              style={{ background: `linear-gradient(135deg, ${data.gradientFrom}22, ${data.gradientTo}33)`, border: `1px solid ${data.gradientFrom}44` }}
-            >
-              {/* Ambient glow */}
-              <div className="absolute inset-0 opacity-20 rounded-2xl"
-                style={{ background: `radial-gradient(circle at center, ${data.gradientFrom}, transparent 70%)` }} />
-              <BodySVG region={data.bodyRegion} movementType={data.movementType} isPlaying={isPlaying} />
-            </div>
+      <motion.div
+        className={`relative w-16 h-16 rounded-xl overflow-hidden cursor-pointer ${className || ''}`}
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={togglePlay}
+      >
+        <img
+          src={data.image}
+          alt={exerciseName}
+          className="w-full h-full object-cover"
+        />
+        {/* Neon glow overlay when playing */}
+        {isPlaying && (
+          <motion.div
+            className="absolute inset-0"
+            style={{
+              boxShadow: `inset 0 0 20px ${data.gradientFrom}66`,
+              border: `1.5px solid ${data.gradientFrom}88`,
+            }}
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 1, repeat: Infinity }}
+          />
+        )}
+        {/* Play/pause icon */}
+        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+          <motion.div
+            animate={isPlaying ? { scale: [1, 1.2, 1] } : {}}
+            transition={{ duration: 0.8, repeat: Infinity }}
+          >
+            {isPlaying
+              ? <Pause className="w-4 h-4 text-white drop-shadow-lg" />
+              : <Play className="w-4 h-4 text-white/80 ml-0.5 drop-shadow-lg" />}
+          </motion.div>
+        </div>
+      </motion.div>
+    );
+  }
 
-            {/* Controls */}
-            <div className="flex justify-between mt-2 px-1">
-              <motion.button
-                className="w-8 h-8 rounded-full flex items-center justify-center"
-                style={{ background: `${data.gradientFrom}33` }}
-                onClick={togglePlay}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
+  // Expanded view with full image + muscle info
+  return (
+    <div className={`${className || ''}`}>
+      <div className="flex gap-4 items-stretch">
+        {/* 3D Exercise Image */}
+        <div className="relative w-36 shrink-0">
+          <motion.div
+            className="w-full h-52 rounded-2xl overflow-hidden relative cursor-pointer"
+            style={{
+              border: `1.5px solid ${data.gradientFrom}44`,
+              boxShadow: `0 0 24px ${data.gradientFrom}22`,
+            }}
+            onClick={togglePlay}
+            whileHover={{ scale: 1.02 }}
+          >
+            {/* Exercise image */}
+            <img
+              src={data.image}
+              alt={exerciseName}
+              className="w-full h-full object-cover"
+            />
+            
+            {/* Animated neon pulse overlay when playing */}
+            {isPlaying && (
+              <motion.div
+                className="absolute inset-0"
+                style={{
+                  background: `radial-gradient(circle at center, ${data.gradientFrom}33 0%, transparent 70%)`,
+                }}
+                animate={{ opacity: [0.3, 0.7, 0.3] }}
+                transition={{ duration: 1.2, repeat: Infinity }}
+              />
+            )}
+
+            {/* Play/pause overlay */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <motion.div
+                className="w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-sm"
+                style={{ background: `${data.gradientFrom}44` }}
+                animate={isPlaying ? { scale: [1, 1.15, 1], opacity: [0.8, 1, 0.8] } : {}}
+                transition={{ duration: 1, repeat: Infinity }}
               >
                 {isPlaying
-                  ? <Pause className="w-3.5 h-3.5" style={{ color: data.gradientFrom }} />
-                  : <Play className="w-3.5 h-3.5 ml-0.5" style={{ color: data.gradientFrom }} />}
-              </motion.button>
-              <motion.button
-                className="w-8 h-8 rounded-full flex items-center justify-center"
-                style={{ background: 'hsl(var(--muted))' }}
-                onClick={() => setSoundEnabled(!soundEnabled)}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                {soundEnabled
-                  ? <Volume2 className="w-3.5 h-3.5 text-primary" />
-                  : <VolumeX className="w-3.5 h-3.5 text-muted-foreground" />}
-              </motion.button>
+                  ? <Pause className="w-5 h-5 text-white" />
+                  : <Play className="w-5 h-5 text-white ml-0.5" />}
+              </motion.div>
+            </div>
+
+            {/* Neon border glow when playing */}
+            {isPlaying && (
+              <motion.div
+                className="absolute inset-0 rounded-2xl pointer-events-none"
+                style={{ border: `2px solid ${data.gradientFrom}` }}
+                animate={{ opacity: [0.4, 0.9, 0.4] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              />
+            )}
+          </motion.div>
+
+          {/* Controls */}
+          <div className="flex justify-between mt-2 px-1">
+            <motion.button
+              className="w-8 h-8 rounded-full flex items-center justify-center"
+              style={{ background: `${data.gradientFrom}22` }}
+              onClick={togglePlay}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              {isPlaying
+                ? <Pause className="w-3.5 h-3.5" style={{ color: data.gradientFrom }} />
+                : <Play className="w-3.5 h-3.5 ml-0.5" style={{ color: data.gradientFrom }} />}
+            </motion.button>
+            <motion.button
+              className="w-8 h-8 rounded-full flex items-center justify-center bg-muted"
+              onClick={() => setSoundEnabled(!soundEnabled)}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              {soundEnabled
+                ? <Volume2 className="w-3.5 h-3.5 text-primary" />
+                : <VolumeX className="w-3.5 h-3.5 text-muted-foreground" />}
+            </motion.button>
+          </div>
+        </div>
+
+        {/* Muscle Info Panel */}
+        <div className="flex-1 space-y-3 py-1">
+          <div>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2">Primary Muscles</p>
+            <div className="flex flex-wrap gap-1.5">
+              {data.primaryMuscles.map(m => (
+                <motion.span
+                  key={m.name}
+                  className="px-2.5 py-1 rounded-full text-xs font-bold"
+                  style={{
+                    background: `${data.gradientFrom}18`,
+                    color: data.gradientFrom,
+                    border: `1px solid ${data.gradientFrom}33`,
+                  }}
+                  animate={isPlaying ? { opacity: [1, 0.6, 1], scale: [1, 1.05, 1] } : {}}
+                  transition={{ duration: 0.8, repeat: Infinity }}
+                >
+                  🎯 {m.name}
+                </motion.span>
+              ))}
             </div>
           </div>
-
-          {/* Muscle Info Panel */}
-          <div className="flex-1 space-y-3 py-1">
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2">Primary Muscles</p>
-              <div className="flex flex-wrap gap-1.5">
-                {data.primaryMuscles.map(m => (
-                  <motion.span
-                    key={m.name}
-                    className="px-2 py-0.5 rounded-full text-xs font-semibold"
-                    style={{ background: 'hsl(150 80% 50% / 0.15)', color: 'hsl(150 80% 50%)', border: '1px solid hsl(150 80% 50% / 0.3)' }}
-                    animate={isPlaying ? { opacity: [1, 0.6, 1] } : {}}
-                    transition={{ duration: 0.8, repeat: Infinity }}
-                  >
-                    🎯 {m.name}
-                  </motion.span>
-                ))}
-              </div>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2">Secondary</p>
-              <div className="flex flex-wrap gap-1.5">
-                {data.secondaryMuscles.map(m => (
-                  <span
-                    key={m.name}
-                    className="px-2 py-0.5 rounded-full text-xs text-muted-foreground"
-                    style={{ background: 'hsl(var(--muted))', border: '1px solid hsl(var(--border))' }}
-                  >
-                    {m.name}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full" style={{ background: data.gradientFrom }} />
-              <span className="text-xs text-muted-foreground capitalize">{data.bodyRegion} body · {data.movementType}</span>
+          <div>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2">Secondary Muscles</p>
+            <div className="flex flex-wrap gap-1.5">
+              {data.secondaryMuscles.map(m => (
+                <span
+                  key={m.name}
+                  className="px-2.5 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground"
+                >
+                  {m.name}
+                </span>
+              ))}
             </div>
           </div>
         </div>
       </div>
-    );
-  }
-
-  // Compact version (used in exercise card)
-  return (
-    <div className={`relative ${className || ''}`}>
-      <motion.div
-        className="relative w-16 h-16 rounded-2xl flex items-center justify-center cursor-pointer overflow-hidden"
-        style={{ background: `linear-gradient(135deg, ${data.gradientFrom}33, ${data.gradientTo}44)`, border: `1px solid ${data.gradientFrom}55` }}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={togglePlay}
-      >
-        {isPlaying && (
-          <motion.div
-            className="absolute inset-0 rounded-2xl border-2"
-            style={{ borderColor: data.gradientFrom }}
-            animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0, 0.6] }}
-            transition={{ duration: 1.2, repeat: Infinity }}
-          />
-        )}
-        <div className="w-10 h-10">
-          <BodySVG region={data.bodyRegion} movementType={data.movementType} isPlaying={isPlaying} />
-        </div>
-        <motion.div
-          className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-2xl"
-          initial={{ opacity: 0 }}
-          whileHover={{ opacity: 1 }}
-          transition={{ duration: 0.15 }}
-        >
-          {isPlaying ? <Pause className="w-4 h-4 text-white" /> : <Play className="w-4 h-4 text-white ml-0.5" />}
-        </motion.div>
-      </motion.div>
-
-      {/* Sound toggle */}
-      <motion.button
-        className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-card border border-border flex items-center justify-center"
-        onClick={(e) => { e.stopPropagation(); setSoundEnabled(!soundEnabled); }}
-        whileHover={{ scale: 1.2 }}
-        whileTap={{ scale: 0.8 }}
-      >
-        {soundEnabled ? <Volume2 className="w-3 h-3 text-primary" /> : <VolumeX className="w-3 h-3 text-muted-foreground" />}
-      </motion.button>
     </div>
   );
 }
